@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.0">Jekyll</generator><link href="https://code4you.dev/feed.xml" rel="self" type="application/atom+xml" /><link href="https://code4you.dev/" rel="alternate" type="text/html" /><updated>2021-10-17T13:05:09+08:00</updated><id>https://code4you.dev/feed.xml</id><title type="html">Code4You</title><author><name>Code4You</name><email>code4you2021@gmail.com</email></author><entry><title type="html">Make your own blog with jekyll</title><link href="https://code4you.dev/2021/10/07/make-your-own-blog-with-jekyll/" rel="alternate" type="text/html" title="Make your own blog with jekyll" /><published>2021-10-07T00:00:00+08:00</published><updated>2021-10-07T00:00:00+08:00</updated><id>https://code4you.dev/2021/10/07/make-your-own-blog-with-jekyll</id><content type="html" xml:base="https://code4you.dev/2021/10/07/make-your-own-blog-with-jekyll/">&lt;p&gt;Building a website nowadays is not as hard or expensive as it was in the past. These days, you do not have to learn a crazy programming language to have your site up and running.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.0">Jekyll</generator><link href="https://code4you.dev/feed.xml" rel="self" type="application/atom+xml" /><link href="https://code4you.dev/" rel="alternate" type="text/html" /><updated>2021-10-17T13:13:38+08:00</updated><id>https://code4you.dev/feed.xml</id><title type="html">Code4You</title><author><name>Code4You</name><email>code4you2021@gmail.com</email></author><entry><title type="html">Make your own blog with jekyll</title><link href="https://code4you.dev/2021/10/07/make-your-own-blog-with-jekyll/" rel="alternate" type="text/html" title="Make your own blog with jekyll" /><published>2021-10-07T00:00:00+08:00</published><updated>2021-10-07T00:00:00+08:00</updated><id>https://code4you.dev/2021/10/07/make-your-own-blog-with-jekyll</id><content type="html" xml:base="https://code4you.dev/2021/10/07/make-your-own-blog-with-jekyll/">&lt;p&gt;Building a website nowadays is not as hard or expensive as it was in the past. These days, you do not have to learn a crazy programming language to have your site up and running.&lt;/p&gt;
 
 &lt;h4 id=&quot;install-jekyll&quot;&gt;Install Jekyll&lt;/h4&gt;
 
@@ -35,10 +35,11 @@ jekyll new MyBlog
 
 &lt;p&gt;Create a repository, the repo name is &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;{username}.github.io&lt;/code&gt;&lt;/p&gt;
 
-&lt;p&gt;Add your site to the repo, detail see: https://gist.github.com/code4you2021/59822bd98499422f5b7d5de6f70cf2d9&lt;/p&gt;
+&lt;p&gt;Add your site to the repo, &lt;a href=&quot;https://gist.github.com/code4you2021/59822bd98499422f5b7d5de6f70cf2d9&quot;&gt;detail see&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;Setting the GitHubPage:
-&lt;img src=&quot;https://cdn.jsdelivr.net/gh/code4you2021/oss@main/uPic/wR4w8T.jpg&quot; alt=&quot;wR4w8T&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;Setting the GitHubPage:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://cdn.jsdelivr.net/gh/code4you2021/oss@main/uPic/wR4w8T.jpg&quot; alt=&quot;wR4w8T&quot; /&gt;&lt;/p&gt;
 
 &lt;h4 id=&quot;load-error-cannot-load-such-file--webrick&quot;&gt;Load error: cannot load such file – webrick&lt;/h4&gt;
 

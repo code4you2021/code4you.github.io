@@ -43,9 +43,10 @@ jekyll new MyBlog
 
 Create a repository, the repo name is `{username}.github.io`
 
-Add your site to the repo, detail see: https://gist.github.com/code4you2021/59822bd98499422f5b7d5de6f70cf2d9
+Add your site to the repo, [detail see](https://gist.github.com/code4you2021/59822bd98499422f5b7d5de6f70cf2d9)
 
 Setting the GitHubPage:
+
 ![wR4w8T](https://cdn.jsdelivr.net/gh/code4you2021/oss@main/uPic/wR4w8T.jpg)
 
 #### Load error: cannot load such file – webrick
