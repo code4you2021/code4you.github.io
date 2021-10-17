@@ -1,9 +1,9 @@
-repository:	     code4you/code4you.github.io
+repository:	         code4you/code4you.github.io
 # Permalinks
 permalink:           /:year/:month/:day/:title/
 
 # Setup
-theme: minima
+theme:               minima
 title:               Code4You
 url:                 https://code4you.dev
 paginate:            10
