@@ -25,25 +25,25 @@
 
       <footer class="footer">
           {% avatar mecid size=100 %}
-          <small>Hi there! My name is Majid.</small>
-          <small>I'm Swift developer 👨🏻‍💻SwiftUI addicted 🚀</small>
-          <small>Creator of <a href="https://cardiobot.swiftwithmajid.com">CardioBot</a> and <a href="https://napbot.swiftwithmajid.com">NapBot</a> apps.</small>
-          <small>Feel free to follow me on <a href="https://twitter.com/mecid">Twitter</a> or <a href="https://github.com/mecid">Github</a>.</small>
+          <small>Hi there! I am code4you,I like to program, and do some App.</small>
+          <small>I'm a developer</small>
+          <small>Feel free to follow me on <a href="https://github.com/code4you2021">Github</a>.</small>
         <small>
-          Majid Jabrayilov &copy; <time datetime="{{ site.time | date_to_xmlschema }}">{{ site.time | date: '%Y' }}</time>. All rights reserved.
+          &copy; <time datetime="{{ site.time | date_to_xmlschema }}">{{ site.time | date: '%Y' }}</time>. All rights reserved.
         </small>
       </footer>
     </div>
 
     {% if site.analytics_id %}
-     <script>
-       (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-       (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-       m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-       })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-       ga('create', '{{ site.analytics_id }}', 'auto');
-       ga('send', 'pageview');
-     </script>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1WQVZK1CR7"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', '{{ site.analytics_id }}');
+    </script>
     {% endif %}
   </body>
 </html>
