@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" content="swift ios development apple watch iphone ipad swiftui macos uikit dev wwdc tutorial guide redux tea state container" />
+
+  <!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Animating changes in UITableView and UICollectionView | Code4You</title>
+<meta name="generator" content="Jekyll v3.9.0" />
+<meta property="og:title" content="Animating changes in UITableView and UICollectionView" />
+<meta name="author" content="Code4You" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Most of our apps present lists or grids of some data by using UITableView or UICollectionView. Often users can update this list by using Pull-to-Refresh technique or by pressing the update button. Everybody knows how to update UITableView by calling the reloadData method on the tableView instance. But what about animation? ReloadData method is invalidating the current items provided by data source and draws new ones without any animation. Today we will talk about animating data changes in UITableView and UICollectionView." />
+<meta property="og:description" content="Most of our apps present lists or grids of some data by using UITableView or UICollectionView. Often users can update this list by using Pull-to-Refresh technique or by pressing the update button. Everybody knows how to update UITableView by calling the reloadData method on the tableView instance. But what about animation? ReloadData method is invalidating the current items provided by data source and draws new ones without any animation. Today we will talk about animating data changes in UITableView and UICollectionView." />
+<link rel="canonical" href="http://localhost:4000/2019/03/13/animating-changes-in-uitableview-and-uicollectionview/" />
+<meta property="og:url" content="http://localhost:4000/2019/03/13/animating-changes-in-uitableview-and-uicollectionview/" />
+<meta property="og:site_name" content="Code4You" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-03-13T00:00:00+08:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Animating changes in UITableView and UICollectionView" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2019/03/13/animating-changes-in-uitableview-and-uicollectionview/"},"url":"http://localhost:4000/2019/03/13/animating-changes-in-uitableview-and-uicollectionview/","author":{"@type":"Person","name":"Code4You"},"headline":"Animating changes in UITableView and UICollectionView","description":"Most of our apps present lists or grids of some data by using UITableView or UICollectionView. Often users can update this list by using Pull-to-Refresh technique or by pressing the update button. Everybody knows how to update UITableView by calling the reloadData method on the tableView instance. But what about animation? ReloadData method is invalidating the current items provided by data source and draws new ones without any animation. Today we will talk about animating data changes in UITableView and UICollectionView.","dateModified":"2019-03-13T00:00:00+08:00","datePublished":"2019-03-13T00:00:00+08:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+  <link rel="alternate" type="application/atom+xml" title="Code4You" href="/feed.xml">
+</head>
+
+
+  <body>
+
+    <div class="container content">
+      <header class="masthead">
+        <nav>
+          <h1 class="masthead-title">
+            <a href="/" title="Home">Code4You</a>
+          </h1>
+          <div>
+            <a href="/categories" title="Categories">Categories</a>
+            <a href="/archive" title="Archive">Archive</a>
+            <a href="/feed.xml" title="Feed">Feed</a>
+          </div>
+        </nav>
+      </header>
+
+      <main>
+        <article class="post">
+  <h2 class="post-title">Animating changes in UITableView and UICollectionView</h2>
+  <time datetime="2019-03-13T00:00:00+08:00" class="post-date">13 Mar 2019</time>
+  <p>Most of our apps present lists or grids of some data by using UITableView or UICollectionView. Often users can update this list by using Pull-to-Refresh technique or by pressing the update button. Everybody knows how to update UITableView by calling the reloadData method on the tableView instance. But what about animation? ReloadData method is invalidating the current items provided by data source and draws new ones without any animation. Today we will talk about animating data changes in UITableView and UICollectionView.</p>
+
+<!-- <div class="ads">
+    <span>
+        Why don’t more iOS apps use voice? Machine learning for voice is hard, and using Siri is clunky and rigid. So we open-sourced an iOS library (also Android, Node, Python, & React Native), and built a no-code web tool to make custom wake words, speech recognizers, and AI voices—for all devs! <a href="https://www.spokestack.io/?utm_source=swiftui_weekly&utm_medium=email&utm_campaign=maker_launch_PAID">Try it for free.</a>
+    </span>
+</div> -->
+
+<h4 id="uicollectionviewuitableview-animation-api">UICollectionView/UITableView animation API</h4>
+<p>iOS SDK provides particular methods like insertRows, deleteRows, and moveRow which give us an opportunity to animate changes in our data source. But only a few apps use this technique to update UITableView and here are two reasons for that.</p>
+
+<ol>
+  <li>It’s hard to calculate what kind of changes applied to your data after the update.</li>
+  <li>There is a particular order on animating changes. You should call deletions first and insertions next, and after that make your movement changes.</li>
+</ol>
+
+<p>I think it’s a little bit complicated, and that’s why not so many apps use this API. But we are going to find an easy way of animating changes.</p>
+
+<h4 id="understanding-the-changes">Understanding the changes</h4>
+<p>There are a lot of third-party libraries which provide fast diffing algorithm implementations. Here is a list of the most famous.</p>
+
+<ul>
+  <li><a href="https://github.com/onmyway133/DeepDiff">DeepDiff</a></li>
+  <li><a href="https://github.com/tonyarnold/Differ">Differ</a></li>
+  <li><a href="https://github.com/lxcid/ListDiff">ListDiff</a></li>
+</ul>
+
+<p>I prefer the second one. It works super fast with my dataset. As a part of this post, we will use Differ library, but you can choose any library you want because usually, it provides a similar API.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">let</span> <span class="nv">old</span> <span class="o">=</span> <span class="p">[</span><span class="s">"1"</span><span class="p">,</span> <span class="s">"2"</span><span class="p">,</span> <span class="s">"3"</span><span class="p">]</span>
+<span class="k">let</span> <span class="nv">new</span> <span class="o">=</span> <span class="p">[</span><span class="s">"4"</span><span class="p">,</span> <span class="s">"3"</span><span class="p">,</span> <span class="s">"2"</span><span class="p">]</span>
+
+<span class="k">let</span> <span class="nv">diff</span> <span class="o">=</span> <span class="n">old</span><span class="o">.</span><span class="nf">diff</span><span class="p">(</span><span class="k">new</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h4 id="hashable">Hashable</h4>
+<p>First of all, we have to implement Hashable protocol on our model types, thanks to Swift it is super easy, all you need to do is adding Hashable protocol to your type declaration and compiler will generate all required code. Here is a sample from my pet project which is a TV show tracking app.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">Show</span><span class="p">:</span> <span class="kt">Hashable</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">title</span><span class="p">:</span> <span class="kt">String</span>
+    <span class="k">let</span> <span class="nv">year</span><span class="p">:</span> <span class="kt">Int</span>
+    <span class="k">let</span> <span class="nv">ids</span><span class="p">:</span> <span class="kt">Ids</span>
+    <span class="k">let</span> <span class="nv">overview</span><span class="p">:</span> <span class="kt">String</span>
+    <span class="k">let</span> <span class="nv">runtime</span><span class="p">:</span> <span class="kt">Int</span>
+    <span class="k">let</span> <span class="nv">certification</span><span class="p">:</span> <span class="kt">String</span>
+    <span class="k">let</span> <span class="nv">network</span><span class="p">:</span> <span class="kt">String</span>
+    <span class="k">let</span> <span class="nv">country</span><span class="p">:</span> <span class="kt">String</span>
+    <span class="k">let</span> <span class="nv">trailer</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span>
+    <span class="k">let</span> <span class="nv">homepage</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span>
+    <span class="k">let</span> <span class="nv">status</span><span class="p">:</span> <span class="kt">String</span>
+    <span class="k">let</span> <span class="nv">rating</span><span class="p">:</span> <span class="kt">Double</span>
+    <span class="k">let</span> <span class="nv">votes</span><span class="p">:</span> <span class="kt">Int</span>
+    <span class="k">let</span> <span class="nv">commentCount</span><span class="p">:</span> <span class="kt">Int</span>
+    <span class="k">let</span> <span class="nv">updatedAt</span><span class="p">:</span> <span class="kt">Date</span>
+    <span class="k">let</span> <span class="nv">language</span><span class="p">:</span> <span class="kt">String</span>
+    <span class="k">let</span> <span class="nv">availableTranslations</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">]</span>
+    <span class="k">let</span> <span class="nv">genres</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">]</span>
+    <span class="k">let</span> <span class="nv">airedEpisodes</span><span class="p">:</span> <span class="kt">Int</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h4 id="animation-api">Animation API</h4>
+<p>Most of the diffing libraries provide UICollectionView and UITableView extensions, which takes oldData, newData, and animate the changes from one state to another. All you need to do is put new data to your data source and instead of calling the reloadData method call animateRowChanges method. This method will handle all the animations based on your changes.</p>
+
+<p>First of all, let’s use the technique which we discussed before <a href="/2019/02/13/hiding-third-party-dependencies-with-protocols-and-extensions">to hide our third-party dependencies with extensions</a>.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">import</span> <span class="kt">UIKit</span>
+<span class="kd">import</span> <span class="kt">Differ</span>
+
+<span class="kd">extension</span> <span class="kt">UICollectionView</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="n">reloadChanges</span><span class="o">&lt;</span><span class="kt">T</span><span class="p">:</span> <span class="kt">Collection</span><span class="o">&gt;</span><span class="p">(</span><span class="n">from</span> <span class="nv">old</span><span class="p">:</span> <span class="kt">T</span><span class="p">,</span> <span class="n">to</span> <span class="nv">new</span><span class="p">:</span> <span class="kt">T</span><span class="p">)</span> <span class="k">where</span> <span class="kt">T</span><span class="o">.</span><span class="kt">Element</span><span class="p">:</span> <span class="kt">Equatable</span> <span class="p">{</span>
+        <span class="nf">animateItemChanges</span><span class="p">(</span><span class="nv">oldData</span><span class="p">:</span> <span class="n">old</span><span class="p">,</span> <span class="nv">newData</span><span class="p">:</span> <span class="k">new</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">extension</span> <span class="kt">UITableView</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="n">reloadChanges</span><span class="o">&lt;</span><span class="kt">T</span><span class="p">:</span> <span class="kt">Collection</span><span class="o">&gt;</span><span class="p">(</span><span class="n">from</span> <span class="nv">old</span><span class="p">:</span> <span class="kt">T</span><span class="p">,</span> <span class="n">to</span> <span class="nv">new</span><span class="p">:</span> <span class="kt">T</span><span class="p">)</span> <span class="k">where</span> <span class="kt">T</span><span class="o">.</span><span class="kt">Element</span><span class="p">:</span> <span class="kt">Equatable</span> <span class="p">{</span>
+        <span class="nf">animateRowChanges</span><span class="p">(</span><span class="nv">oldData</span><span class="p">:</span> <span class="n">old</span><span class="p">,</span> <span class="nv">newData</span><span class="p">:</span> <span class="k">new</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>We create an extension which adds a reloadChanges method to UICollectionView and UITableView. With the help of this extension, you can easily switch libraries or your implementation by making changes in a single file.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">func</span> <span class="nf">render</span><span class="p">(</span><span class="n">_</span> <span class="nv">newData</span><span class="p">:</span> <span class="p">[</span><span class="kt">Show</span><span class="p">])</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">oldData</span> <span class="o">=</span> <span class="n">dataSource</span><span class="o">.</span><span class="n">posters</span>
+    <span class="n">dataSource</span><span class="o">.</span><span class="n">posters</span> <span class="o">=</span> <span class="n">newData</span>
+    <span class="n">collectionView</span><span class="o">.</span><span class="nf">reloadChanges</span><span class="p">(</span><span class="nv">from</span><span class="p">:</span> <span class="n">oldData</span><span class="p">,</span> <span class="nv">to</span><span class="p">:</span> <span class="n">newData</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><img src="/public/showbot-animation.gif" alt="ShowBot-animation" /></p>
+
+<h4 id="conclusion">Conclusion</h4>
+<p>Today we discussed how it is easy to add delight to our apps by animating changes. This kind of animations makes apps feel natural and fluid. Feel free to follow me on <a href="https://twitter.com/mecid">Twitter</a> and ask your questions related to this post. Thanks for reading and see you next week!</p>
+
+</article>
+
+
+<aside class="related">
+  <h4>Recent posts</h4>
+  <ul class="related-posts">
+    
+      <li>
+        <a title="Custom accessibility content in SwiftUI" href="/2021/10/06/custom-accessibility-content-in-swiftui/">
+          Custom accessibility content in SwiftUI
+          <small><time datetime="2021-10-06T00:00:00+08:00">06 Oct 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Audio graphs in SwiftUI" href="/2021/09/29/audio-graphs-in-swiftui/">
+          Audio graphs in SwiftUI
+          <small><time datetime="2021-09-29T00:00:00+08:00">29 Sep 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Accessibility focus in SwiftUI" href="/2021/09/23/accessibility-focus-in-swiftui/">
+          Accessibility focus in SwiftUI
+          <small><time datetime="2021-09-23T00:00:00+08:00">23 Sep 2021</time></small>
+        </a>
+      </li>
+    
+  </ul>
+</aside>
+
+
+      </main>
+
+      <footer class="footer">
+          <img class="avatar" alt="mecid" width="100" height="100" data-proofer-ignore="true" src="https://avatars2.githubusercontent.com/mecid?v=3&s=100" srcset="https://avatars2.githubusercontent.com/mecid?v=3&s=100 1x, https://avatars2.githubusercontent.com/mecid?v=3&s=200 2x, https://avatars2.githubusercontent.com/mecid?v=3&s=300 3x, https://avatars2.githubusercontent.com/mecid?v=3&s=400 4x" />
+          <small>Hi there! I am code4you,I like to program, and do some App.</small>
+          <small>I'm a developer</small>
+          <small>Feel free to follow me on <a href="https://github.com/code4you2021">Github</a>.</small>
+        <small>
+          &copy; <time datetime="2021-10-17T11:25:11+08:00">2021</time>. All rights reserved.
+        </small>
+      </footer>
+    </div>
+
+    
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1WQVZK1CR7"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-18491817-18');
+    </script>
+    
+  </body>
+</html>

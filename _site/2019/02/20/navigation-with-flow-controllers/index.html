@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" content="swift ios development apple watch iphone ipad swiftui macos uikit dev wwdc tutorial guide redux tea state container" />
+
+  <!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Navigation with Flow Controllers | Code4You</title>
+<meta name="generator" content="Jekyll v3.9.0" />
+<meta property="og:title" content="Navigation with Flow Controllers" />
+<meta name="author" content="Code4You" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Last month I started refactoring navigation flow in my pet project. I’ve been using Coordinator pattern for a while, but now I decide to switch to a more native and simple approach like Flow Controllers. Today we will talk about Flow Controllers and why it is more native than Coordinators." />
+<meta property="og:description" content="Last month I started refactoring navigation flow in my pet project. I’ve been using Coordinator pattern for a while, but now I decide to switch to a more native and simple approach like Flow Controllers. Today we will talk about Flow Controllers and why it is more native than Coordinators." />
+<link rel="canonical" href="http://localhost:4000/2019/02/20/navigation-with-flow-controllers/" />
+<meta property="og:url" content="http://localhost:4000/2019/02/20/navigation-with-flow-controllers/" />
+<meta property="og:site_name" content="Code4You" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-02-20T00:00:00+08:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Navigation with Flow Controllers" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2019/02/20/navigation-with-flow-controllers/"},"url":"http://localhost:4000/2019/02/20/navigation-with-flow-controllers/","author":{"@type":"Person","name":"Code4You"},"headline":"Navigation with Flow Controllers","description":"Last month I started refactoring navigation flow in my pet project. I’ve been using Coordinator pattern for a while, but now I decide to switch to a more native and simple approach like Flow Controllers. Today we will talk about Flow Controllers and why it is more native than Coordinators.","dateModified":"2019-02-20T00:00:00+08:00","datePublished":"2019-02-20T00:00:00+08:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+  <link rel="alternate" type="application/atom+xml" title="Code4You" href="/feed.xml">
+</head>
+
+
+  <body>
+
+    <div class="container content">
+      <header class="masthead">
+        <nav>
+          <h1 class="masthead-title">
+            <a href="/" title="Home">Code4You</a>
+          </h1>
+          <div>
+            <a href="/categories" title="Categories">Categories</a>
+            <a href="/archive" title="Archive">Archive</a>
+            <a href="/feed.xml" title="Feed">Feed</a>
+          </div>
+        </nav>
+      </header>
+
+      <main>
+        <article class="post">
+  <h2 class="post-title">Navigation with Flow Controllers</h2>
+  <time datetime="2019-02-20T00:00:00+08:00" class="post-date">20 Feb 2019</time>
+  <p>Last month I started refactoring navigation flow in my pet project. I’ve been using Coordinator pattern for a while, but now I decide to switch to a more native and simple approach like Flow Controllers. Today we will talk about Flow Controllers and why it is more native than Coordinators.</p>
+
+<!-- <div class="ads">
+    <span>
+        Why don’t more iOS apps use voice? Machine learning for voice is hard, and using Siri is clunky and rigid. So we open-sourced an iOS library (also Android, Node, Python, & React Native), and built a no-code web tool to make custom wake words, speech recognizers, and AI voices—for all devs! <a href="https://www.spokestack.io/?utm_source=swiftui_weekly&utm_medium=email&utm_campaign=maker_launch_PAID">Try it for free.</a>
+    </span>
+</div> -->
+
+<h4 id="coordinators">Coordinators</h4>
+<p>Coordinator is a plain object which handles the navigation flow. It owns rootViewController, where it pushes next ViewControllers. ViewControllers and Coordinators talk with each other by delegates. It gives us an opportunity to keep ViewControllers reusable, by extracting navigation knowledge from them. More about Coordinator pattern you can read in the original <a href="http://khanlou.com/2015/01/the-coordinator/">post by Soroush Khanlou</a>.</p>
+
+<p>The one huge problem which I have with Coordinator pattern is keeping it in sync with ViewController hierarchy. Every Coordinator has a childCoordinators field which is used to keep navigation sub-flows. Users can finish sub-flow anytime they want by pressing back button in the navigation bar. Coordinators by default can’t handle this situation, and our child coordinator will live in childCoordinators array forever, which leads to huge memory leak.</p>
+
+<p>To fix this problem, we have to implement a navigation controller delegate in a coordinator to understand when the user finishes flow by pressing back button and remove child coordinator from the array. This solution described very well in the original <a href="http://khanlou.com/2017/05/back-buttons-and-coordinators/">post</a>. I think we can avoid this complexity and boilerplate by using Flow Controllers.</p>
+
+<h4 id="flow-controllers">Flow Controllers</h4>
+<p>Flow Controller is a UIViewController subclass which handles navigation flow by using ViewController containment feature. Let’s dive into the code example. Assume that we have Master-Details flow, where our app navigates from product list screen to product details.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">import</span> <span class="kt">UIKit</span>
+
+<span class="kd">class</span> <span class="kt">ProductsFlowController</span><span class="p">:</span> <span class="kt">UIViewController</span> <span class="p">{</span>
+    <span class="kd">private</span> <span class="k">let</span> <span class="nv">navigation</span> <span class="o">=</span> <span class="kt">UINavigationController</span><span class="p">()</span>
+
+    <span class="k">override</span> <span class="kd">func</span> <span class="nf">viewDidLoad</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">super</span><span class="o">.</span><span class="nf">viewDidLoad</span><span class="p">()</span>
+        <span class="k">let</span> <span class="nv">productsVC</span> <span class="o">=</span> <span class="kt">ProductListViewController</span><span class="p">()</span>
+        <span class="n">productsVC</span><span class="o">.</span><span class="n">delegate</span> <span class="o">=</span> <span class="k">self</span>
+        <span class="n">navigation</span><span class="o">.</span><span class="nf">show</span><span class="p">(</span><span class="n">productsVC</span><span class="p">,</span> <span class="nv">sender</span><span class="p">:</span> <span class="k">self</span><span class="p">)</span>
+        <span class="nf">add</span><span class="p">(</span><span class="n">navigation</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">protocol</span> <span class="kt">ProductsFlowControllerDelegate</span><span class="p">:</span> <span class="kt">AnyObject</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">startDetails</span><span class="p">(</span><span class="k">for</span> <span class="nv">productId</span><span class="p">:</span> <span class="kt">Int</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kd">extension</span> <span class="kt">ProductsFlowController</span><span class="p">:</span> <span class="kt">ProductsFlowControllerDelegate</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">startDetails</span><span class="p">(</span><span class="k">for</span> <span class="nv">productId</span><span class="p">:</span> <span class="kt">Int</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">let</span> <span class="nv">productVC</span> <span class="o">=</span> <span class="kt">ProductDetailsViewController</span><span class="p">(</span><span class="nv">productId</span><span class="p">:</span> <span class="n">productId</span><span class="p">)</span>
+        <span class="n">navigation</span><span class="o">.</span><span class="nf">show</span><span class="p">(</span><span class="n">productVC</span><span class="p">,</span> <span class="nv">sender</span><span class="p">:</span> <span class="k">self</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>As you can see, ProductsFlowController creates UINavigationController, add it as a child, then it pushes ProductListViewController to the NavigationController which it owns. It also sets delegate to ProductListViewController which will be used to ask FlowController to show details of the selected product.</p>
+
+<p>Here is my extension which I use to add child ViewControllers to a parent.</p>
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">extension</span> <span class="kt">UIViewController</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">add</span><span class="p">(</span><span class="n">_</span> <span class="nv">child</span><span class="p">:</span> <span class="kt">UIViewController</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nf">addChild</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
+        <span class="n">view</span><span class="o">.</span><span class="nf">addSubview</span><span class="p">(</span><span class="n">child</span><span class="o">.</span><span class="n">view</span><span class="p">)</span>
+        <span class="n">child</span><span class="o">.</span><span class="nf">didMove</span><span class="p">(</span><span class="nv">toParent</span><span class="p">:</span> <span class="k">self</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h4 id="handling-sub-flows-with-flow-controllers">Handling sub-flows with Flow Controllers</h4>
+<p>Let’s take a look at another example where we have to start sub-flow which handled by separated Flow Controller.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">extension</span> <span class="kt">ProductsFlowController</span><span class="p">:</span> <span class="kt">ProductsFlowControllerDelegate</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">startDetails</span><span class="p">(</span><span class="k">for</span> <span class="nv">productId</span><span class="p">:</span> <span class="kt">Int</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">let</span> <span class="nv">detailsFlow</span> <span class="o">=</span> <span class="kt">DetailsFlowController</span><span class="p">(</span><span class="nv">productId</span><span class="p">:</span> <span class="n">productId</span><span class="p">)</span>
+        <span class="n">navigation</span><span class="o">.</span><span class="nf">show</span><span class="p">(</span><span class="n">detailsFlow</span><span class="p">,</span> <span class="nv">sender</span><span class="p">:</span> <span class="k">self</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>In this example, we start DetailsFlowController which handles another flow. We don’t need to add it to childs array as we do it with Coordinators. It is plain UIViewController, as soon as the user presses the back button in the navigation bar, UINavigationController will remove this Flow Controller both from the screen and the memory. As you can see by using UIViewController as FlowControllers, we don’t need to deal with the synchronization between flow and visible ViewController. It is coming out of the box from iOS SDK.</p>
+
+<h4 id="appflowcontroller">AppFlowController</h4>
+<p>Very often we are using UITabBarController as a rootViewController in our app. Let’s extract tab configuration from AppDelegate and wrap inside AppFlowController. Here is a quick example of this idea.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">import</span> <span class="kt">UIKit</span>
+
+<span class="kd">class</span> <span class="kt">AppFlowViewController</span><span class="p">:</span> <span class="kt">UIViewController</span> <span class="p">{</span>
+    <span class="kd">private</span> <span class="k">let</span> <span class="nv">tabController</span> <span class="o">=</span> <span class="kt">UITabBarController</span><span class="p">()</span>
+
+    <span class="k">override</span> <span class="kd">func</span> <span class="nf">viewDidLoad</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">super</span><span class="o">.</span><span class="nf">viewDidLoad</span><span class="p">()</span>
+        <span class="n">tabController</span><span class="o">.</span><span class="n">viewControllers</span> <span class="o">=</span> <span class="p">[</span><span class="kt">ProductsFlowController</span><span class="p">()]</span>
+        <span class="nf">add</span><span class="p">(</span><span class="n">tabController</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">@UIApplicationMain</span>
+<span class="kd">class</span> <span class="kt">AppDelegate</span><span class="p">:</span> <span class="kt">UIResponder</span><span class="p">,</span> <span class="kt">UIApplicationDelegate</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">window</span><span class="p">:</span> <span class="kt">UIWindow</span><span class="p">?</span>
+
+    <span class="kd">func</span> <span class="nf">application</span><span class="p">(</span><span class="n">_</span> <span class="nv">application</span><span class="p">:</span> <span class="kt">UIApplication</span><span class="p">,</span> <span class="n">didFinishLaunchingWithOptions</span> <span class="nv">launchOptions</span><span class="p">:</span> <span class="p">[</span><span class="kt">UIApplication</span><span class="o">.</span><span class="kt">LaunchOptionsKey</span><span class="p">:</span> <span class="kt">Any</span><span class="p">]?)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span> <span class="p">{</span>
+        <span class="n">window</span> <span class="o">=</span> <span class="kt">UIWindow</span><span class="p">(</span><span class="nv">frame</span><span class="p">:</span> <span class="kt">UIScreen</span><span class="o">.</span><span class="n">main</span><span class="o">.</span><span class="n">bounds</span><span class="p">)</span>
+        <span class="n">window</span><span class="p">?</span><span class="o">.</span><span class="n">rootViewController</span> <span class="o">=</span> <span class="kt">AppFlowViewController</span><span class="p">()</span>
+        <span class="n">window</span><span class="p">?</span><span class="o">.</span><span class="nf">makeKeyAndVisible</span><span class="p">()</span>
+        <span class="k">return</span> <span class="kc">true</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>As you can see in the example above, we create AppFlowController which creates UITabBarController and populate every tab with separated navigation flow.</p>
+
+<h4 id="conclusion">Conclusion</h4>
+<p>Today we talked about navigation flow and how we can extract it into Flow Controllers by using ViewController containment feature. It gives us an opportunity to reuse our ViewControllers and make them more testable. We will continue to cover ViewController containment feature in next posts.</p>
+
+<p>Feel free to follow me on <a href="https://twitter.com/mecid">Twitter</a> and ask your questions related to this post. Thanks for reading and see you next week!</p>
+
+</article>
+
+
+<aside class="related">
+  <h4>Recent posts</h4>
+  <ul class="related-posts">
+    
+      <li>
+        <a title="Custom accessibility content in SwiftUI" href="/2021/10/06/custom-accessibility-content-in-swiftui/">
+          Custom accessibility content in SwiftUI
+          <small><time datetime="2021-10-06T00:00:00+08:00">06 Oct 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Audio graphs in SwiftUI" href="/2021/09/29/audio-graphs-in-swiftui/">
+          Audio graphs in SwiftUI
+          <small><time datetime="2021-09-29T00:00:00+08:00">29 Sep 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Accessibility focus in SwiftUI" href="/2021/09/23/accessibility-focus-in-swiftui/">
+          Accessibility focus in SwiftUI
+          <small><time datetime="2021-09-23T00:00:00+08:00">23 Sep 2021</time></small>
+        </a>
+      </li>
+    
+  </ul>
+</aside>
+
+
+      </main>
+
+      <footer class="footer">
+          <img class="avatar" alt="mecid" width="100" height="100" data-proofer-ignore="true" src="https://avatars2.githubusercontent.com/mecid?v=3&s=100" srcset="https://avatars2.githubusercontent.com/mecid?v=3&s=100 1x, https://avatars2.githubusercontent.com/mecid?v=3&s=200 2x, https://avatars2.githubusercontent.com/mecid?v=3&s=300 3x, https://avatars2.githubusercontent.com/mecid?v=3&s=400 4x" />
+          <small>Hi there! I am code4you,I like to program, and do some App.</small>
+          <small>I'm a developer</small>
+          <small>Feel free to follow me on <a href="https://github.com/code4you2021">Github</a>.</small>
+        <small>
+          &copy; <time datetime="2021-10-17T11:25:11+08:00">2021</time>. All rights reserved.
+        </small>
+      </footer>
+    </div>
+
+    
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1WQVZK1CR7"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-18491817-18');
+    </script>
+    
+  </body>
+</html>

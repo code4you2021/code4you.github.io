@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" content="swift ios development apple watch iphone ipad swiftui macos uikit dev wwdc tutorial guide redux tea state container" />
+
+  <!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>SwiftUI wishlist for WWDC21 | Code4You</title>
+<meta name="generator" content="Jekyll v3.9.0" />
+<meta property="og:title" content="SwiftUI wishlist for WWDC21" />
+<meta name="author" content="Code4You" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="WWDC21 is coming pretty soon, and it is a great chance to think about the new features that I want to see in SwiftUI. This wishlist contains not only the list of the features I want to use but also possible APIs. Remember that this post is the result of my imagination, and most of the code examples don’t exist at the moment." />
+<meta property="og:description" content="WWDC21 is coming pretty soon, and it is a great chance to think about the new features that I want to see in SwiftUI. This wishlist contains not only the list of the features I want to use but also possible APIs. Remember that this post is the result of my imagination, and most of the code examples don’t exist at the moment." />
+<link rel="canonical" href="http://localhost:4000/2021/05/26/swiftui-wishlist-for-wwdc21/" />
+<meta property="og:url" content="http://localhost:4000/2021/05/26/swiftui-wishlist-for-wwdc21/" />
+<meta property="og:site_name" content="Code4You" />
+<meta property="og:image" content="http://localhost:4000/public/wwdc21.jpg" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2021-05-26T00:00:00+08:00" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta property="twitter:image" content="http://localhost:4000/public/wwdc21.jpg" />
+<meta property="twitter:title" content="SwiftUI wishlist for WWDC21" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2021/05/26/swiftui-wishlist-for-wwdc21/"},"url":"http://localhost:4000/2021/05/26/swiftui-wishlist-for-wwdc21/","image":"http://localhost:4000/public/wwdc21.jpg","author":{"@type":"Person","name":"Code4You"},"headline":"SwiftUI wishlist for WWDC21","description":"WWDC21 is coming pretty soon, and it is a great chance to think about the new features that I want to see in SwiftUI. This wishlist contains not only the list of the features I want to use but also possible APIs. Remember that this post is the result of my imagination, and most of the code examples don’t exist at the moment.","dateModified":"2021-05-26T00:00:00+08:00","datePublished":"2021-05-26T00:00:00+08:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+  <link rel="alternate" type="application/atom+xml" title="Code4You" href="/feed.xml">
+</head>
+
+
+  <body>
+
+    <div class="container content">
+      <header class="masthead">
+        <nav>
+          <h1 class="masthead-title">
+            <a href="/" title="Home">Code4You</a>
+          </h1>
+          <div>
+            <a href="/categories" title="Categories">Categories</a>
+            <a href="/archive" title="Archive">Archive</a>
+            <a href="/feed.xml" title="Feed">Feed</a>
+          </div>
+        </nav>
+      </header>
+
+      <main>
+        <article class="post">
+  <h2 class="post-title">SwiftUI wishlist for WWDC21</h2>
+  <time datetime="2021-05-26T00:00:00+08:00" class="post-date">26 May 2021</time>
+  <p>WWDC21 is coming pretty soon, and it is a great chance to think about the new features that I want to see in SwiftUI. This wishlist contains not only the list of the features I want to use but also possible APIs. Remember that this post is the result of my imagination, and most of the code examples don’t exist at the moment.</p>
+
+<!-- <div class="ads">
+    <span>
+        Why don’t more iOS apps use voice? Machine learning for voice is hard, and using Siri is clunky and rigid. So we open-sourced an iOS library (also Android, Node, Python, & React Native), and built a no-code web tool to make custom wake words, speech recognizers, and AI voices—for all devs! <a href="https://www.spokestack.io/?utm_source=swiftui_weekly&utm_medium=email&utm_campaign=maker_launch_PAID">Try it for free.</a>
+    </span>
+</div> -->
+
+<h4 id="list-and-scrollview">List and ScrollView</h4>
+<p>SwiftUI provides you both <em>List</em> and <em>ScrollView</em>, but under the hood, these views still use the UIKit implementation of <em>UITableView</em> and <em>UIScrollView</em>. I love how <em>UITableView</em> works and the API it provides us. But SwiftUI’s <em>List</em> and <em>ScrollView</em> don’t expose all the powerful features of <em>UITableView</em> and <em>UIScrollView</em>.</p>
+
+<p>Almost all the screens in my apps use the List view in different styles, and I hope to see more APIs from <em>UITableView</em>, which allows styling separators, cell backgrounds using the <em>ListStyle</em> protocol.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">ContentView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">messages</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">]</span>
+
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">List</span> <span class="p">{</span>
+            <span class="kt">ForEach</span><span class="p">(</span><span class="n">messages</span><span class="p">,</span> <span class="nv">id</span><span class="p">:</span> <span class="p">\</span><span class="o">.</span><span class="k">self</span><span class="p">)</span> <span class="p">{</span> <span class="n">message</span> <span class="k">in</span>
+                <span class="kt">Text</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">}</span><span class="o">.</span><span class="nf">listStyle</span><span class="p">(</span><span class="kt">DefaultListStyle</span><span class="p">(</span><span class="nv">separator</span><span class="p">:</span> <span class="o">.</span><span class="k">none</span><span class="p">,</span> <span class="nv">selection</span><span class="p">:</span> <span class="o">.</span><span class="n">single</span><span class="p">))</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><em>ScrollView</em> is another crucial component for many screens. I usually build my apps with accessibility in mind and support Dynamic Type out of the box. <em>ScrollView</em> is must-have root view for every screen where you want Dynamic Type. <em>ScrollView</em> in SwiftUI is still missing paging and content offset features that we used to see in <em>UIScrollView</em>.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">RootView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="kd">@State</span> <span class="kd">private</span> <span class="k">var</span> <span class="nv">offset</span><span class="p">:</span> <span class="kt">CGPoint</span> <span class="o">=</span> <span class="o">.</span><span class="n">zero</span>
+
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">ScrollView</span><span class="p">(</span><span class="o">.</span><span class="n">vertical</span><span class="p">,</span> <span class="nv">showsIndicators</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span> <span class="nv">offset</span><span class="p">:</span> <span class="err">$</span><span class="n">offset</span><span class="p">)</span> <span class="p">{</span>
+            <span class="kt">Text</span><span class="p">(</span><span class="s">"Very long text"</span><span class="p">)</span>
+            <span class="kt">Button</span><span class="p">(</span><span class="s">"Jump to top"</span><span class="p">)</span> <span class="p">{</span>
+                <span class="k">self</span><span class="o">.</span><span class="n">offset</span> <span class="o">=</span> <span class="o">.</span><span class="n">zero</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p>We can read the content offset of ScrollView using preferences API in SwiftUI. To learn more, take a look at my dedicated <a href="/2020/09/24/mastering-scrollview-in-swiftui/">“Mastering ScrollView in SwiftUI”</a> post.</p>
+</blockquote>
+
+<h4 id="compositionallayout">CompositionalLayout</h4>
+<p>During the last year, Apple gave us <em>LazyHGrid</em> and <em>LazyVGrid</em> views, which we can use to build views like calendars or photo grids. Grids work great, and I love them, but we want to use the power of <em>CompositionalLayout</em> that we have in UIKit. I don’t think that Apple should get rid of <em>LazyHGrid</em> and <em>LazyVGrid</em> views, but they can introduce a new <em>CompositionaView</em> that supports all the features of <em>CompositionalLayout</em>.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">AppStoreView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">featured</span><span class="p">:</span> <span class="p">[</span><span class="kt">App</span><span class="p">]</span>
+    <span class="k">let</span> <span class="nv">appsWeLove</span><span class="p">:</span> <span class="p">[</span><span class="kt">App</span><span class="p">]</span>
+
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">CompositionaView</span> <span class="p">{</span>
+            <span class="kt">Section</span><span class="p">(</span><span class="o">.</span><span class="n">groupPagingCentered</span><span class="p">)</span> <span class="p">{</span>
+                <span class="kt">Group</span><span class="p">(</span><span class="o">.</span><span class="n">horizontal</span><span class="p">,</span> <span class="nv">width</span><span class="p">:</span> <span class="o">.</span><span class="nf">fractionalWidth</span><span class="p">(</span><span class="mf">0.5</span><span class="p">),</span> <span class="nv">height</span><span class="p">:</span> <span class="o">.</span><span class="nf">fractionalHeight</span><span class="p">(</span><span class="mf">0.5</span><span class="p">))</span> <span class="p">{</span>
+                    <span class="kt">ForEach</span><span class="p">(</span><span class="n">featured</span><span class="p">)</span> <span class="p">{</span> <span class="n">app</span> <span class="k">in</span>
+                        <span class="kt">FeatureAppView</span><span class="p">(</span><span class="nv">app</span><span class="p">:</span> <span class="n">app</span><span class="p">)</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+
+            <span class="kt">Section</span> <span class="p">{</span>
+                <span class="kt">Group</span><span class="p">(</span><span class="o">.</span><span class="n">vertical</span><span class="p">,</span> <span class="nv">width</span><span class="p">:</span> <span class="o">.</span><span class="nf">fractionalWidth</span><span class="p">(</span><span class="mf">0.9</span><span class="p">),</span> <span class="nv">height</span><span class="p">:</span> <span class="o">.</span><span class="nf">estimated</span><span class="p">(</span><span class="mi">200</span><span class="p">))</span> <span class="p">{</span>
+                    <span class="kt">ForEach</span><span class="p">(</span><span class="n">appsWeLove</span><span class="p">)</span> <span class="p">{</span> <span class="n">app</span> <span class="k">in</span>
+                        <span class="kt">SmallAppView</span><span class="p">(</span><span class="nv">app</span><span class="p">:</span> <span class="n">app</span><span class="p">)</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h4 id="navigation">Navigation</h4>
+<p>Navigation is another point of pain in SwiftUI. It works great for simple use cases but doesn’t provide enough flexibility for complex solutions. What I want to use is some sort of <em>RouterView</em> that maps destinations to concrete views.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">enum</span> <span class="kt">Destination</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="n">home</span>
+    <span class="k">case</span> <span class="n">login</span>
+    <span class="k">case</span> <span class="nf">profile</span><span class="p">(</span><span class="kt">UUID</span><span class="p">)</span>
+    <span class="k">case</span> <span class="n">settings</span>
+<span class="p">}</span>
+
+<span class="kd">struct</span> <span class="kt">RootView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">RouterView</span><span class="p">(</span><span class="nv">initial</span><span class="p">:</span> <span class="kt">Destination</span><span class="o">.</span><span class="n">home</span><span class="p">)</span> <span class="p">{</span> <span class="n">destination</span> <span class="k">in</span>
+            <span class="k">switch</span> <span class="n">destination</span> <span class="p">{</span>
+            <span class="k">case</span> <span class="o">.</span><span class="nv">home</span><span class="p">:</span> <span class="kt">HomeView</span><span class="p">()</span>
+            <span class="k">case</span> <span class="o">.</span><span class="nv">login</span><span class="p">:</span> <span class="kt">LoginView</span><span class="p">()</span>
+            <span class="k">case</span> <span class="kd">let</span> <span class="o">.</span><span class="nf">profile</span><span class="p">(</span><span class="n">user</span><span class="p">):</span> <span class="kt">ProfileView</span><span class="p">(</span><span class="nv">user</span><span class="p">:</span> <span class="n">user</span><span class="p">)</span>
+            <span class="k">case</span> <span class="o">.</span><span class="nv">settings</span><span class="p">:</span> <span class="kt">SettingsView</span><span class="p">()</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>We also can have a router in the environment and mutate the state of navigation using the environment value.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">ProfileView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">user</span><span class="p">:</span> <span class="kt">UUID</span>
+    <span class="kd">@Environment</span><span class="p">(\</span><span class="o">.</span><span class="n">router</span><span class="p">)</span> <span class="k">var</span> <span class="nv">router</span>
+
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">VStack</span> <span class="p">{</span>
+            <span class="kt">Button</span><span class="p">(</span><span class="s">"push settings screen"</span><span class="p">)</span> <span class="p">{</span>
+                <span class="n">router</span><span class="o">.</span><span class="nf">push</span><span class="p">(</span><span class="o">.</span><span class="n">settings</span><span class="p">)</span>
+            <span class="p">}</span>
+
+            <span class="kt">Button</span><span class="p">(</span><span class="s">"go home"</span><span class="p">)</span> <span class="p">{</span>
+                <span class="n">router</span><span class="o">.</span><span class="nf">popToRoot</span><span class="p">()</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p>To learn more about advanced techniques while building navigation in SwiftUI, take a look at my <a href="/2021/01/27/lazy-navigation-in-swiftui/">“Lazy navigation in SwiftUI”</a> post.</p>
+</blockquote>
+
+<h4 id="focus-management-and-text-fields">Focus management and text fields</h4>
+<p>Sign-up form with multiple text fields is what I usually implement using UIKit and then wrap with <em>UIViewControllerRepresentable</em>. It is literally impossible to handle the first responder in SwiftUI and move the focus from one view to another.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">LoginView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="kd">@State</span> <span class="kd">private</span> <span class="k">var</span> <span class="nv">email</span> <span class="o">=</span> <span class="s">""</span>
+    <span class="kd">@State</span> <span class="kd">private</span> <span class="k">var</span> <span class="nv">password</span> <span class="o">=</span> <span class="s">""</span>
+
+    <span class="kd">@State</span> <span class="kd">private</span> <span class="k">var</span> <span class="nv">hasFilledCredentials</span> <span class="o">=</span> <span class="kc">false</span>
+    <span class="kd">@Namespace</span> <span class="kd">private</span> <span class="k">var</span> <span class="nv">namespace</span>
+
+    <span class="kd">@Environment</span><span class="p">(\</span><span class="o">.</span><span class="n">resetFocus</span><span class="p">)</span> <span class="k">var</span> <span class="nv">resetFocus</span>
+
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">VStack</span> <span class="p">{</span>
+            <span class="kt">TextField</span><span class="p">(</span><span class="s">"email"</span><span class="p">,</span> <span class="nv">text</span><span class="p">:</span> <span class="err">$</span><span class="n">email</span><span class="p">)</span>
+                <span class="o">.</span><span class="nf">prefersDefaultFocus</span><span class="p">(</span><span class="o">!</span><span class="n">hasFilledCredentials</span><span class="p">,</span> <span class="nv">in</span><span class="p">:</span> <span class="n">namespace</span><span class="p">)</span>
+
+            <span class="kt">SecureField</span><span class="p">(</span><span class="s">"password"</span><span class="p">,</span> <span class="nv">text</span><span class="p">:</span> <span class="err">$</span><span class="n">password</span><span class="p">)</span>
+
+            <span class="kt">Button</span><span class="p">(</span><span class="s">"login"</span><span class="p">)</span> <span class="p">{}</span>
+                <span class="o">.</span><span class="nf">prefersDefaultFocus</span><span class="p">(</span><span class="n">hasFilledCredentials</span><span class="p">,</span> <span class="nv">in</span><span class="p">:</span> <span class="n">namespace</span><span class="p">)</span>
+
+            <span class="kt">Button</span><span class="p">(</span><span class="s">"reset credentials"</span><span class="p">)</span> <span class="p">{</span>
+                <span class="n">hasFilledCredentials</span> <span class="o">=</span> <span class="kc">false</span>
+                <span class="nf">resetFocus</span><span class="p">(</span><span class="nv">in</span><span class="p">:</span> <span class="n">namespace</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">}</span><span class="o">.</span><span class="nf">focusScope</span><span class="p">(</span><span class="n">namespace</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>You might wonder, but this is the real API that we have in SwiftUI at the moment. Unfortunately, it is available only for tvOS and watchOS, but I wish to see it for iOS and macOS.</p>
+
+<blockquote>
+  <p>To learn more about focus management in SwiftUI, take a look at my <a href="/2020/12/02/focus-management-in-swiftui/">“Focus management in SwiftUI”</a> post.</p>
+</blockquote>
+
+<h4 id="conclusion">Conclusion</h4>
+<p>I didn’t mention small things like <em>Pull-to-Refresh, SearchBar, TextView</em>, but I still expect them to appear. SwiftUI has its own set of pros and cons. But for me, it is the way to go with my projects. I’m so excited about the upcoming WWDC and hope to see at least a part of the features I mentioned in this post. I hope you enjoy the post. Feel free to follow me on <a href="https://twitter.com/mecid">Twitter</a> and ask your questions related to this post. Thanks for reading, and see you next week!</p>
+
+</article>
+
+
+<aside class="related">
+  <h4>Recent posts</h4>
+  <ul class="related-posts">
+    
+      <li>
+        <a title="Custom accessibility content in SwiftUI" href="/2021/10/06/custom-accessibility-content-in-swiftui/">
+          Custom accessibility content in SwiftUI
+          <small><time datetime="2021-10-06T00:00:00+08:00">06 Oct 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Audio graphs in SwiftUI" href="/2021/09/29/audio-graphs-in-swiftui/">
+          Audio graphs in SwiftUI
+          <small><time datetime="2021-09-29T00:00:00+08:00">29 Sep 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Accessibility focus in SwiftUI" href="/2021/09/23/accessibility-focus-in-swiftui/">
+          Accessibility focus in SwiftUI
+          <small><time datetime="2021-09-23T00:00:00+08:00">23 Sep 2021</time></small>
+        </a>
+      </li>
+    
+  </ul>
+</aside>
+
+
+      </main>
+
+      <footer class="footer">
+          <img class="avatar" alt="mecid" width="100" height="100" data-proofer-ignore="true" src="https://avatars2.githubusercontent.com/mecid?v=3&s=100" srcset="https://avatars2.githubusercontent.com/mecid?v=3&s=100 1x, https://avatars2.githubusercontent.com/mecid?v=3&s=200 2x, https://avatars2.githubusercontent.com/mecid?v=3&s=300 3x, https://avatars2.githubusercontent.com/mecid?v=3&s=400 4x" />
+          <small>Hi there! I am code4you,I like to program, and do some App.</small>
+          <small>I'm a developer</small>
+          <small>Feel free to follow me on <a href="https://github.com/code4you2021">Github</a>.</small>
+        <small>
+          &copy; <time datetime="2021-10-17T11:25:11+08:00">2021</time>. All rights reserved.
+        </small>
+      </footer>
+    </div>
+
+    
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1WQVZK1CR7"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-18491817-18');
+    </script>
+    
+  </body>
+</html>

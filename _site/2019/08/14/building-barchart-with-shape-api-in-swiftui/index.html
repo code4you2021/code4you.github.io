@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" content="swift ios development apple watch iphone ipad swiftui macos uikit dev wwdc tutorial guide redux tea state container" />
+
+  <!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Building BarChart with Shape API in SwiftUI | Code4You</title>
+<meta name="generator" content="Jekyll v3.9.0" />
+<meta property="og:title" content="Building BarChart with Shape API in SwiftUI" />
+<meta name="author" content="Code4You" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="This week I want to show you how to use Shape API in SwiftUI. We will take a look at ready to use shapes like Circle, Capsule, Rectangle, etc. We will learn how to draw super custom shapes by using Path and GeometryReader. In the end, we will build BarChart implementation ultimately in SwiftUI." />
+<meta property="og:description" content="This week I want to show you how to use Shape API in SwiftUI. We will take a look at ready to use shapes like Circle, Capsule, Rectangle, etc. We will learn how to draw super custom shapes by using Path and GeometryReader. In the end, we will build BarChart implementation ultimately in SwiftUI." />
+<link rel="canonical" href="http://localhost:4000/2019/08/14/building-barchart-with-shape-api-in-swiftui/" />
+<meta property="og:url" content="http://localhost:4000/2019/08/14/building-barchart-with-shape-api-in-swiftui/" />
+<meta property="og:site_name" content="Code4You" />
+<meta property="og:image" content="http://localhost:4000/public/chart.jpg" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-08-14T00:00:00+08:00" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta property="twitter:image" content="http://localhost:4000/public/chart.jpg" />
+<meta property="twitter:title" content="Building BarChart with Shape API in SwiftUI" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2019/08/14/building-barchart-with-shape-api-in-swiftui/"},"url":"http://localhost:4000/2019/08/14/building-barchart-with-shape-api-in-swiftui/","image":"http://localhost:4000/public/chart.jpg","author":{"@type":"Person","name":"Code4You"},"headline":"Building BarChart with Shape API in SwiftUI","description":"This week I want to show you how to use Shape API in SwiftUI. We will take a look at ready to use shapes like Circle, Capsule, Rectangle, etc. We will learn how to draw super custom shapes by using Path and GeometryReader. In the end, we will build BarChart implementation ultimately in SwiftUI.","dateModified":"2019-08-14T00:00:00+08:00","datePublished":"2019-08-14T00:00:00+08:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+  <link rel="alternate" type="application/atom+xml" title="Code4You" href="/feed.xml">
+</head>
+
+
+  <body>
+
+    <div class="container content">
+      <header class="masthead">
+        <nav>
+          <h1 class="masthead-title">
+            <a href="/" title="Home">Code4You</a>
+          </h1>
+          <div>
+            <a href="/categories" title="Categories">Categories</a>
+            <a href="/archive" title="Archive">Archive</a>
+            <a href="/feed.xml" title="Feed">Feed</a>
+          </div>
+        </nav>
+      </header>
+
+      <main>
+        <article class="post">
+  <h2 class="post-title">Building BarChart with Shape API in SwiftUI</h2>
+  <time datetime="2019-08-14T00:00:00+08:00" class="post-date">14 Aug 2019</time>
+  <p>This week I want to show you how to use <em>Shape</em> API in SwiftUI. We will take a look at ready to use shapes like <em>Circle, Capsule, Rectangle</em>, etc. We will learn how to draw super custom shapes by using <em>Path</em> and <em>GeometryReader</em>. In the end, we will build <em>BarChart</em> implementation ultimately in SwiftUI.</p>
+
+<!-- <div class="ads">
+    <span>
+        Why don’t more iOS apps use voice? Machine learning for voice is hard, and using Siri is clunky and rigid. So we open-sourced an iOS library (also Android, Node, Python, & React Native), and built a no-code web tool to make custom wake words, speech recognizers, and AI voices—for all devs! <a href="https://www.spokestack.io/?utm_source=swiftui_weekly&utm_medium=email&utm_campaign=maker_launch_PAID">Try it for free.</a>
+    </span>
+</div> -->
+
+<h4 id="shape-protocol">Shape protocol</h4>
+<p>SwiftUI provides <em>Shape</em> protocol which has a single requirement <em>path</em> function. We use <em>path</em> function to describe our shape inside a provided rectangle. Let’s try to use it to draw a progress ring.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">ProgressShape</span><span class="p">:</span> <span class="kt">Shape</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">progress</span><span class="p">:</span> <span class="kt">Double</span>
+
+    <span class="kd">func</span> <span class="nf">path</span><span class="p">(</span><span class="k">in</span> <span class="nv">rect</span><span class="p">:</span> <span class="kt">CGRect</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Path</span> <span class="p">{</span>
+        <span class="k">var</span> <span class="nv">path</span> <span class="o">=</span> <span class="kt">Path</span><span class="p">()</span>
+        <span class="n">path</span><span class="o">.</span><span class="nf">addArc</span><span class="p">(</span>
+            <span class="nv">center</span><span class="p">:</span> <span class="kt">CGPoint</span><span class="p">(</span><span class="nv">x</span><span class="p">:</span> <span class="n">rect</span><span class="o">.</span><span class="n">midX</span><span class="p">,</span> <span class="nv">y</span><span class="p">:</span> <span class="n">rect</span><span class="o">.</span><span class="n">midY</span><span class="p">),</span>
+            <span class="nv">radius</span><span class="p">:</span> <span class="n">rect</span><span class="o">.</span><span class="n">width</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="nv">startAngle</span><span class="p">:</span> <span class="o">.</span><span class="nf">radians</span><span class="p">(</span><span class="mf">1.5</span> <span class="o">*</span> <span class="o">.</span><span class="n">pi</span><span class="p">),</span>
+            <span class="nv">endAngle</span><span class="p">:</span> <span class="o">.</span><span class="nf">init</span><span class="p">(</span><span class="nv">radians</span><span class="p">:</span> <span class="mi">2</span> <span class="o">*</span> <span class="kt">Double</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">progress</span> <span class="o">+</span> <span class="mf">1.5</span> <span class="o">*</span> <span class="kt">Double</span><span class="o">.</span><span class="n">pi</span><span class="p">),</span>
+            <span class="nv">clockwise</span><span class="p">:</span> <span class="kc">false</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">path</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Here we use a little math to calculate <em>arc</em> which describes our progress. <em>Shape</em> protocol conforms to <em>View</em> protocol that’s why we can easily use it inside <em>Stack</em> or <em>Group</em>. We can also customize default drawing by setting custom <em>StrokeStyle</em>.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">ProgressView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">progress</span><span class="p">:</span> <span class="kt">Double</span>
+
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">ProgressShape</span><span class="p">(</span><span class="nv">progress</span><span class="p">:</span> <span class="n">progress</span><span class="p">)</span>
+            <span class="o">.</span><span class="nf">stroke</span><span class="p">(</span><span class="kt">Color</span><span class="o">.</span><span class="n">blue</span><span class="p">,</span>
+                    <span class="nv">style</span><span class="p">:</span> <span class="kt">StrokeStyle</span><span class="p">(</span>
+                        <span class="nv">lineWidth</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+                        <span class="nv">lineCap</span><span class="p">:</span> <span class="o">.</span><span class="n">round</span><span class="p">,</span>
+                        <span class="nv">lineJoin</span><span class="p">:</span> <span class="o">.</span><span class="n">round</span><span class="p">,</span>
+                        <span class="nv">miterLimit</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                        <span class="nv">dash</span><span class="p">:</span> <span class="p">[],</span>
+                        <span class="nv">dashPhase</span><span class="p">:</span> <span class="mi">0</span>
+                    <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h4 id="ready-to-use-shapes">Ready to use shapes</h4>
+<p>We discussed how to draw custom shapes, but most of the time, it is enough to apply ready to use shapes provided by SwiftUI. SwiftUI offers shapes like <em>Circle, Capsule, Rectangle</em>, etc. We can easily use them to build <em>BarChart</em> in SwiftUI. Let’s start by describing the Bar data model.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">Legend</span><span class="p">:</span> <span class="kt">Hashable</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">color</span><span class="p">:</span> <span class="kt">Color</span>
+    <span class="k">let</span> <span class="nv">label</span><span class="p">:</span> <span class="kt">String</span>
+<span class="p">}</span>
+
+<span class="kd">struct</span> <span class="kt">Bar</span><span class="p">:</span> <span class="kt">Identifiable</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">id</span><span class="p">:</span> <span class="kt">UUID</span>
+    <span class="k">let</span> <span class="nv">value</span><span class="p">:</span> <span class="kt">Double</span>
+    <span class="k">let</span> <span class="nv">label</span><span class="p">:</span> <span class="kt">String</span>
+    <span class="k">let</span> <span class="nv">legend</span><span class="p">:</span> <span class="kt">Legend</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>As you can see, our <em>Bar</em> struct conforms to <em>Identifiable</em> protocol. We need <em>Identifiable</em> conformance to use <em>Bar</em> struct inside <em>ForEach</em>. <em>ForEach</em> uses <em>Identifiable</em> to understand data changes during the rendering process. Now we can draw our bars by using shape <em>Capsule</em>.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">BarsView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">bars</span><span class="p">:</span> <span class="p">[</span><span class="kt">Bar</span><span class="p">]</span>
+    <span class="k">let</span> <span class="nv">max</span><span class="p">:</span> <span class="kt">Double</span>
+
+    <span class="nf">init</span><span class="p">(</span><span class="nv">bars</span><span class="p">:</span> <span class="p">[</span><span class="kt">Bar</span><span class="p">])</span> <span class="p">{</span>
+        <span class="k">self</span><span class="o">.</span><span class="n">bars</span> <span class="o">=</span> <span class="n">bars</span>
+        <span class="k">self</span><span class="o">.</span><span class="n">max</span> <span class="o">=</span> <span class="n">bars</span><span class="o">.</span><span class="n">map</span> <span class="p">{</span> <span class="nv">$0</span><span class="o">.</span><span class="n">value</span> <span class="p">}</span><span class="o">.</span><span class="nf">max</span><span class="p">()</span> <span class="p">??</span> <span class="mi">0</span>
+    <span class="p">}</span>
+
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">GeometryReader</span> <span class="p">{</span> <span class="n">geometry</span> <span class="k">in</span>
+            <span class="kt">HStack</span><span class="p">(</span><span class="nv">alignment</span><span class="p">:</span> <span class="o">.</span><span class="n">bottom</span><span class="p">,</span> <span class="nv">spacing</span><span class="p">:</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+                <span class="kt">ForEach</span><span class="p">(</span><span class="k">self</span><span class="o">.</span><span class="n">bars</span><span class="p">)</span> <span class="p">{</span> <span class="n">bar</span> <span class="k">in</span>
+                    <span class="kt">Capsule</span><span class="p">()</span>
+                        <span class="o">.</span><span class="nf">fill</span><span class="p">(</span><span class="n">bar</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">color</span><span class="p">)</span>
+                        <span class="o">.</span><span class="nf">frame</span><span class="p">(</span><span class="nv">height</span><span class="p">:</span> <span class="kt">CGFloat</span><span class="p">(</span><span class="n">bar</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">/</span> <span class="kt">CGFloat</span><span class="p">(</span><span class="k">self</span><span class="o">.</span><span class="n">max</span><span class="p">)</span> <span class="o">*</span> <span class="n">geometry</span><span class="o">.</span><span class="n">size</span><span class="o">.</span><span class="n">height</span><span class="p">)</span>
+                        <span class="o">.</span><span class="nf">overlay</span><span class="p">(</span><span class="kt">Rectangle</span><span class="p">()</span><span class="o">.</span><span class="nf">stroke</span><span class="p">(</span><span class="kt">Color</span><span class="o">.</span><span class="n">white</span><span class="p">))</span>
+                        <span class="o">.</span><span class="nf">accessibility</span><span class="p">(</span><span class="nv">label</span><span class="p">:</span> <span class="kt">Text</span><span class="p">(</span><span class="n">bar</span><span class="o">.</span><span class="n">label</span><span class="p">))</span>
+                        <span class="o">.</span><span class="nf">accessibility</span><span class="p">(</span><span class="nv">value</span><span class="p">:</span> <span class="kt">Text</span><span class="p">(</span><span class="n">bar</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">label</span><span class="p">))</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Here we implement <em>BarsView</em> which uses <em>HStack</em> to display capsules in the horizontal layout. Another interesting fact here is <em>GeometryReader</em>. By wrapping any view inside the <em>GeometryReader</em>, we can access the geometry data like parent size and safe area insets provided by its container. We use container size to calculate the height of bars and draw them properly. We also use accessibility modifier here to make our bars more accessible and navigable.</p>
+
+<p>Every chart should have a legend view. Let’s implement it by using another regular shape provided by SwiftUI. I want to display legends as a view which contains a small colored circle on the left and title on the right.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">LegendView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="kd">private</span> <span class="k">let</span> <span class="nv">legends</span><span class="p">:</span> <span class="p">[</span><span class="kt">Legend</span><span class="p">]</span>
+
+    <span class="nf">init</span><span class="p">(</span><span class="nv">bars</span><span class="p">:</span> <span class="p">[</span><span class="kt">Bar</span><span class="p">])</span> <span class="p">{</span>
+        <span class="n">legends</span> <span class="o">=</span> <span class="kt">Array</span><span class="p">(</span><span class="kt">Set</span><span class="p">(</span><span class="n">bars</span><span class="o">.</span><span class="n">map</span> <span class="p">{</span> <span class="nv">$0</span><span class="o">.</span><span class="n">legend</span> <span class="p">}))</span>
+    <span class="p">}</span>
+
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">HStack</span><span class="p">(</span><span class="nv">alignment</span><span class="p">:</span> <span class="o">.</span><span class="n">center</span><span class="p">)</span> <span class="p">{</span>
+            <span class="kt">ForEach</span><span class="p">(</span><span class="n">legends</span><span class="p">,</span> <span class="nv">id</span><span class="p">:</span> <span class="p">\</span><span class="o">.</span><span class="k">self</span><span class="p">)</span> <span class="p">{</span> <span class="n">legend</span> <span class="k">in</span>
+                <span class="kt">VStack</span><span class="p">(</span><span class="nv">alignment</span><span class="p">:</span> <span class="o">.</span><span class="n">center</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="kt">Circle</span><span class="p">()</span>
+                        <span class="o">.</span><span class="nf">fill</span><span class="p">(</span><span class="n">legend</span><span class="o">.</span><span class="n">color</span><span class="p">)</span>
+                        <span class="o">.</span><span class="nf">frame</span><span class="p">(</span><span class="nv">width</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span> <span class="nv">height</span><span class="p">:</span> <span class="mi">16</span><span class="p">)</span>
+
+                    <span class="kt">Text</span><span class="p">(</span><span class="n">legend</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
+                        <span class="o">.</span><span class="nf">font</span><span class="p">(</span><span class="o">.</span><span class="n">subheadline</span><span class="p">)</span>
+                        <span class="o">.</span><span class="nf">lineLimit</span><span class="p">(</span><span class="kc">nil</span><span class="p">)</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>In the example above, we use <em>Сircle</em> shape to draw color indicators of every <em>Legend</em>. Now we can compose our <em>BarsView</em> and <em>LegendsView</em> to provide <em>BarChart</em> experience.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">BarChartView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">bars</span><span class="p">:</span> <span class="p">[</span><span class="kt">Bar</span><span class="p">]</span>
+
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">Group</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="n">bars</span><span class="o">.</span><span class="n">isEmpty</span> <span class="p">{</span>
+                <span class="kt">Text</span><span class="p">(</span><span class="s">"There is no data to display chart..."</span><span class="p">)</span>
+            <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+                <span class="kt">VStack</span> <span class="p">{</span>
+                    <span class="kt">BarsView</span><span class="p">(</span><span class="nv">bars</span><span class="p">:</span> <span class="n">bars</span><span class="p">)</span>
+                    <span class="kt">LegendView</span><span class="p">(</span><span class="nv">bars</span><span class="p">:</span> <span class="n">bars</span><span class="p">)</span>
+                        <span class="o">.</span><span class="nf">padding</span><span class="p">()</span>
+                        <span class="o">.</span><span class="nf">accessibility</span><span class="p">(</span><span class="nv">hidden</span><span class="p">:</span> <span class="kc">true</span><span class="p">)</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Here we have <em>BarChartView</em> which puts <em>BarsView and LegendsView</em> inside the <em>VStack</em>. We also use accessibility modifier to hide <em>LegendsView</em> in the <em>Accessibility tree</em>.</p>
+
+<h4 id="real-life-example">Real-life example</h4>
+<p>I use the source code from this post to implement <em>BarChart</em> in my <em>SleepBot</em> app. Besides the implementation which we have in the current post, I’ve added <em>LabelsView</em>. <em>LabelsView</em> presents the <em>BarChart</em> labels below the chart itself. Here is the implementation of that view.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">LabelsView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">bars</span><span class="p">:</span> <span class="p">[</span><span class="kt">Bar</span><span class="p">]</span>
+    <span class="k">let</span> <span class="nv">labelsCount</span><span class="p">:</span> <span class="kt">Int</span>
+
+    <span class="kd">private</span> <span class="k">var</span> <span class="nv">threshold</span><span class="p">:</span> <span class="kt">Int</span> <span class="p">{</span>
+        <span class="k">let</span> <span class="nv">threshold</span> <span class="o">=</span> <span class="n">bars</span><span class="o">.</span><span class="n">count</span> <span class="o">/</span> <span class="n">labelsCount</span>
+        <span class="k">return</span> <span class="n">threshold</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">?</span> <span class="mi">1</span> <span class="p">:</span> <span class="n">threshold</span>
+    <span class="p">}</span>
+
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">HStack</span> <span class="p">{</span>
+            <span class="kt">ForEach</span><span class="p">(</span><span class="mi">0</span><span class="o">..&lt;</span><span class="n">bars</span><span class="o">.</span><span class="n">count</span><span class="p">,</span> <span class="nv">id</span><span class="p">:</span> <span class="p">\</span><span class="o">.</span><span class="k">self</span><span class="p">)</span> <span class="p">{</span> <span class="n">index</span> <span class="k">in</span>
+                <span class="kt">Group</span> <span class="p">{</span>
+                    <span class="k">if</span> <span class="n">index</span> <span class="o">%</span> <span class="k">self</span><span class="o">.</span><span class="n">threshold</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">{</span>
+                        <span class="kt">Spacer</span><span class="p">()</span>
+                        <span class="kt">Text</span><span class="p">(</span><span class="k">self</span><span class="o">.</span><span class="n">bars</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
+                            <span class="o">.</span><span class="nf">font</span><span class="p">(</span><span class="o">.</span><span class="n">caption</span><span class="p">)</span>
+                        <span class="kt">Spacer</span><span class="p">()</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Take a look at the final version of <em>BarChartView</em> in <em>SleepBot</em> app.
+<img src="/public/chart.jpg" alt="chart" /></p>
+
+<h4 id="conclusion">Conclusion</h4>
+<p>Today we talked about <em>Shape</em> API which we have in SwiftUI. We also build <em>BarChart</em> experience by using ready to use <em>Capsule</em> and <em>Circle</em> shapes. We made our chart accessible by providing labels and values for our bars. Feel free to follow me on <a href="https://twitter.com/mecid">Twitter</a> and ask your questions related to this post. Thanks for reading and see you next week!</p>
+
+</article>
+
+
+<aside class="related">
+  <h4>Recent posts</h4>
+  <ul class="related-posts">
+    
+      <li>
+        <a title="Custom accessibility content in SwiftUI" href="/2021/10/06/custom-accessibility-content-in-swiftui/">
+          Custom accessibility content in SwiftUI
+          <small><time datetime="2021-10-06T00:00:00+08:00">06 Oct 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Audio graphs in SwiftUI" href="/2021/09/29/audio-graphs-in-swiftui/">
+          Audio graphs in SwiftUI
+          <small><time datetime="2021-09-29T00:00:00+08:00">29 Sep 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Accessibility focus in SwiftUI" href="/2021/09/23/accessibility-focus-in-swiftui/">
+          Accessibility focus in SwiftUI
+          <small><time datetime="2021-09-23T00:00:00+08:00">23 Sep 2021</time></small>
+        </a>
+      </li>
+    
+  </ul>
+</aside>
+
+
+      </main>
+
+      <footer class="footer">
+          <img class="avatar" alt="mecid" width="100" height="100" data-proofer-ignore="true" src="https://avatars2.githubusercontent.com/mecid?v=3&s=100" srcset="https://avatars2.githubusercontent.com/mecid?v=3&s=100 1x, https://avatars2.githubusercontent.com/mecid?v=3&s=200 2x, https://avatars2.githubusercontent.com/mecid?v=3&s=300 3x, https://avatars2.githubusercontent.com/mecid?v=3&s=400 4x" />
+          <small>Hi there! I am code4you,I like to program, and do some App.</small>
+          <small>I'm a developer</small>
+          <small>Feel free to follow me on <a href="https://github.com/code4you2021">Github</a>.</small>
+        <small>
+          &copy; <time datetime="2021-10-17T11:25:11+08:00">2021</time>. All rights reserved.
+        </small>
+      </footer>
+    </div>
+
+    
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1WQVZK1CR7"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-18491817-18');
+    </script>
+    
+  </body>
+</html>

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" content="swift ios development apple watch iphone ipad swiftui macos uikit dev wwdc tutorial guide redux tea state container" />
+
+  <!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Asynchronous completion handlers with Result type | Code4You</title>
+<meta name="generator" content="Jekyll v3.9.0" />
+<meta property="og:title" content="Asynchronous completion handlers with Result type" />
+<meta name="author" content="Code4You" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Enums are one of my favorite features in Swift language. This week we will talk about Result enum, which had been a part of the standard library since Swift 5. With Result enum, we can easily describe the resulting state of an asynchronous operation. It can be success or failure at one time not both of them. Let’s take a look at Result enum definition in the Swift standard library." />
+<meta property="og:description" content="Enums are one of my favorite features in Swift language. This week we will talk about Result enum, which had been a part of the standard library since Swift 5. With Result enum, we can easily describe the resulting state of an asynchronous operation. It can be success or failure at one time not both of them. Let’s take a look at Result enum definition in the Swift standard library." />
+<link rel="canonical" href="http://localhost:4000/2019/04/17/asynchronous-completion-handlers-with-result-type/" />
+<meta property="og:url" content="http://localhost:4000/2019/04/17/asynchronous-completion-handlers-with-result-type/" />
+<meta property="og:site_name" content="Code4You" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-04-17T00:00:00+08:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Asynchronous completion handlers with Result type" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2019/04/17/asynchronous-completion-handlers-with-result-type/"},"url":"http://localhost:4000/2019/04/17/asynchronous-completion-handlers-with-result-type/","author":{"@type":"Person","name":"Code4You"},"headline":"Asynchronous completion handlers with Result type","description":"Enums are one of my favorite features in Swift language. This week we will talk about Result enum, which had been a part of the standard library since Swift 5. With Result enum, we can easily describe the resulting state of an asynchronous operation. It can be success or failure at one time not both of them. Let’s take a look at Result enum definition in the Swift standard library.","dateModified":"2019-04-17T00:00:00+08:00","datePublished":"2019-04-17T00:00:00+08:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+  <link rel="alternate" type="application/atom+xml" title="Code4You" href="/feed.xml">
+</head>
+
+
+  <body>
+
+    <div class="container content">
+      <header class="masthead">
+        <nav>
+          <h1 class="masthead-title">
+            <a href="/" title="Home">Code4You</a>
+          </h1>
+          <div>
+            <a href="/categories" title="Categories">Categories</a>
+            <a href="/archive" title="Archive">Archive</a>
+            <a href="/feed.xml" title="Feed">Feed</a>
+          </div>
+        </nav>
+      </header>
+
+      <main>
+        <article class="post">
+  <h2 class="post-title">Asynchronous completion handlers with Result type</h2>
+  <time datetime="2019-04-17T00:00:00+08:00" class="post-date">17 Apr 2019</time>
+  <p><a href="/2019/01/23/maintaining-state-in-view-controllers/">Enums are one of my favorite features in Swift language.</a> This week we will talk about Result enum, which had been a part of the standard library since Swift 5. With Result enum, we can easily describe the resulting state of an asynchronous operation. It can be success or failure at one time not both of them. Let’s take a look at Result enum definition in the Swift standard library.</p>
+
+<!-- <div class="ads">
+    <span>
+        Why don’t more iOS apps use voice? Machine learning for voice is hard, and using Siri is clunky and rigid. So we open-sourced an iOS library (also Android, Node, Python, & React Native), and built a no-code web tool to make custom wake words, speech recognizers, and AI voices—for all devs! <a href="https://www.spokestack.io/?utm_source=swiftui_weekly&utm_medium=email&utm_campaign=maker_launch_PAID">Try it for free.</a>
+    </span>
+</div> -->
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">Result</span><span class="o">&lt;</span><span class="kt">Success</span><span class="p">,</span> <span class="kt">Failure</span><span class="o">&gt;</span> <span class="k">where</span> <span class="kt">Failure</span> <span class="p">:</span> <span class="kt">Error</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="nf">success</span><span class="p">(</span><span class="kt">Success</span><span class="p">)</span>
+    <span class="k">case</span> <span class="nf">failure</span><span class="p">(</span><span class="kt">Failure</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Result type described as two case enum, which has success and failure cases. Both of them have generic associated types, while Failure type is constrained to conform Error protocol, Success type can be anything that we want to return as a proper result of our operation. Let’s take a look at completion handler in the URLSession’s dataTask function which passes both data and error to the handler.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">URLSession</span><span class="o">.</span><span class="n">shared</span><span class="o">.</span><span class="nf">dataTask</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="kt">API</span><span class="o">.</span><span class="n">history</span><span class="p">)</span> <span class="p">{</span> <span class="n">data</span><span class="p">,</span> <span class="n">_</span> <span class="p">,</span> <span class="n">error</span> <span class="k">in</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>The downside of this approach is the undefined state where we have both data and error in the completion handler. So let’s clarify completion handler by using Result type instead.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">typealias</span> <span class="kt">Handler</span><span class="o">&lt;</span><span class="kt">T</span><span class="o">&gt;</span> <span class="o">=</span> <span class="p">(</span><span class="kt">Result</span><span class="o">&lt;</span><span class="kt">T</span><span class="p">,</span> <span class="kt">Error</span><span class="o">&gt;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span>
+
+<span class="kd">extension</span> <span class="kt">URLSession</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">dataTask</span><span class="p">(</span><span class="n">with</span> <span class="nv">url</span><span class="p">:</span> <span class="kt">URL</span><span class="p">,</span> <span class="nv">completionHandler</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="kt">Handler</span><span class="o">&lt;</span><span class="kt">Data</span><span class="o">&gt;</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nf">dataTask</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="n">url</span><span class="p">)</span> <span class="p">{</span> <span class="n">data</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">error</span> <span class="k">in</span>
+            <span class="k">if</span> <span class="k">let</span> <span class="nv">error</span> <span class="o">=</span> <span class="n">error</span> <span class="p">{</span>
+                <span class="nf">completionHandler</span><span class="p">(</span><span class="o">.</span><span class="nf">failure</span><span class="p">(</span><span class="n">error</span><span class="p">))</span>
+            <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+                <span class="nf">completionHandler</span><span class="p">(</span><span class="o">.</span><span class="nf">success</span><span class="p">(</span><span class="n">data</span> <span class="p">??</span> <span class="kt">Data</span><span class="p">()))</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Here we have an extension on the URLSession class which adds dataTask method overload. Instead of passing both data and error, we give the instance of Result enum which stores data value or error. I am using Result enum in many places across my codebase, that’s why I created type alias for Handler type which is closure with a generic Result as a parameter. Let’s move to the usage of our new extension.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="kt">HistoryService</span> <span class="p">{</span>
+    <span class="kd">private</span> <span class="k">let</span> <span class="nv">session</span><span class="p">:</span> <span class="kt">URLSession</span>
+    <span class="kd">private</span> <span class="k">let</span> <span class="nv">decoder</span><span class="p">:</span> <span class="kt">JSONDecoder</span>
+
+    <span class="nf">init</span><span class="p">(</span><span class="nv">session</span><span class="p">:</span> <span class="kt">URLSession</span><span class="p">,</span> <span class="nv">decoder</span><span class="p">:</span> <span class="kt">JSONDecoder</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">session</span>
+        <span class="k">self</span><span class="o">.</span><span class="n">decoder</span> <span class="o">=</span> <span class="n">decoder</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">fetch</span><span class="p">(</span><span class="nv">handler</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="kt">Handler</span><span class="o">&lt;</span><span class="kt">History</span><span class="o">&gt;</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">session</span><span class="o">.</span><span class="nf">dataTask</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="kt">API</span><span class="o">.</span><span class="n">history</span><span class="p">)</span> <span class="p">{</span> <span class="p">[</span><span class="k">weak</span> <span class="k">self</span><span class="p">]</span> <span class="n">result</span> <span class="k">in</span>
+            <span class="k">guard</span> <span class="k">let</span> <span class="nv">self</span> <span class="o">=</span> <span class="k">self</span> <span class="k">else</span> <span class="p">{</span> <span class="k">return</span> <span class="p">}</span>
+
+            <span class="k">do</span> <span class="p">{</span>
+                <span class="k">let</span> <span class="nv">data</span> <span class="o">=</span> <span class="k">try</span> <span class="n">result</span><span class="o">.</span><span class="nf">get</span><span class="p">()</span>
+                <span class="k">let</span> <span class="nv">user</span> <span class="o">=</span> <span class="k">try</span> <span class="k">self</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="nf">decode</span><span class="p">(</span><span class="kt">History</span><span class="o">.</span><span class="k">self</span><span class="p">,</span> <span class="nv">from</span><span class="p">:</span> <span class="n">data</span><span class="p">)</span>
+                <span class="nf">handler</span><span class="p">(</span><span class="o">.</span><span class="nf">success</span><span class="p">(</span><span class="n">user</span><span class="p">))</span>
+            <span class="p">}</span> <span class="k">catch</span> <span class="p">{</span>
+                <span class="nf">handler</span><span class="p">(</span><span class="o">.</span><span class="nf">failure</span><span class="p">(</span><span class="n">error</span><span class="p">))</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>In the code samples above we have a HistoryService class which uses URLSession to fetch data and deserialize it into History structure instance. Result type provides the particular <em>get</em> method which tries to return the value of Result enum or throws the error. I feel like I have a lot of places across my codebase where I need to fetch data and deserialize into some structure. We can easily create another extension, this time extension on Result type.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">extension</span> <span class="kt">Result</span> <span class="k">where</span> <span class="kt">Success</span> <span class="o">==</span> <span class="kt">Data</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="n">decode</span><span class="o">&lt;</span><span class="kt">T</span><span class="p">:</span> <span class="kt">Decodable</span><span class="o">&gt;</span><span class="p">(</span><span class="n">with</span> <span class="nv">decoder</span><span class="p">:</span> <span class="kt">JSONDecoder</span> <span class="o">=</span> <span class="o">.</span><span class="nf">init</span><span class="p">())</span> <span class="o">-&gt;</span> <span class="kt">Result</span><span class="o">&lt;</span><span class="kt">T</span><span class="p">,</span> <span class="kt">Error</span><span class="o">&gt;</span> <span class="p">{</span>
+        <span class="k">do</span> <span class="p">{</span>
+            <span class="k">let</span> <span class="nv">data</span> <span class="o">=</span> <span class="k">try</span> <span class="nf">get</span><span class="p">()</span>
+            <span class="k">let</span> <span class="nv">decoded</span> <span class="o">=</span> <span class="k">try</span> <span class="n">decoder</span><span class="o">.</span><span class="nf">decode</span><span class="p">(</span><span class="kt">T</span><span class="o">.</span><span class="k">self</span><span class="p">,</span> <span class="nv">from</span><span class="p">:</span> <span class="n">data</span><span class="p">)</span>
+            <span class="k">return</span> <span class="o">.</span><span class="nf">success</span><span class="p">(</span><span class="n">decoded</span><span class="p">)</span>
+        <span class="p">}</span> <span class="k">catch</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="o">.</span><span class="nf">failure</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>The extension which we have above tries to decode data into decodable generic by returning value wrapped into Result type or by returning failure with error. Here is the new version of the HistoryService which uses our extension. One of the benefits here is the type inference, which saves us from indicating type in which we are going to decode data.  Decode function uses generic constraint which infers from the completion handler definition. Now it looks in a very nice way.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">func</span> <span class="nf">fetch</span><span class="p">(</span><span class="nv">handler</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="kt">Handler</span><span class="o">&lt;</span><span class="kt">History</span><span class="o">&gt;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">session</span><span class="o">.</span><span class="nf">dataTask</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="kt">API</span><span class="o">.</span><span class="n">history</span><span class="p">)</span> <span class="p">{</span> <span class="n">result</span> <span class="k">in</span>
+        <span class="nf">handler</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="nf">decode</span><span class="p">())</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<h4 id="conclusion">Conclusion</h4>
+<p>This week we talked about Result type which comes with Swift 5 standard library. It helps us to make our codebase cleaner and easy to understand. I think it is a perfect time to move our asynchronous code to use Result enum for completion handlers. Feel free to follow me on <a href="https://twitter.com/mecid">Twitter</a> and ask your questions related to this post. Thanks for reading and see you next week!</p>
+
+</article>
+
+
+<aside class="related">
+  <h4>Recent posts</h4>
+  <ul class="related-posts">
+    
+      <li>
+        <a title="Custom accessibility content in SwiftUI" href="/2021/10/06/custom-accessibility-content-in-swiftui/">
+          Custom accessibility content in SwiftUI
+          <small><time datetime="2021-10-06T00:00:00+08:00">06 Oct 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Audio graphs in SwiftUI" href="/2021/09/29/audio-graphs-in-swiftui/">
+          Audio graphs in SwiftUI
+          <small><time datetime="2021-09-29T00:00:00+08:00">29 Sep 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Accessibility focus in SwiftUI" href="/2021/09/23/accessibility-focus-in-swiftui/">
+          Accessibility focus in SwiftUI
+          <small><time datetime="2021-09-23T00:00:00+08:00">23 Sep 2021</time></small>
+        </a>
+      </li>
+    
+  </ul>
+</aside>
+
+
+      </main>
+
+      <footer class="footer">
+          <img class="avatar" alt="mecid" width="100" height="100" data-proofer-ignore="true" src="https://avatars2.githubusercontent.com/mecid?v=3&s=100" srcset="https://avatars2.githubusercontent.com/mecid?v=3&s=100 1x, https://avatars2.githubusercontent.com/mecid?v=3&s=200 2x, https://avatars2.githubusercontent.com/mecid?v=3&s=300 3x, https://avatars2.githubusercontent.com/mecid?v=3&s=400 4x" />
+          <small>Hi there! I am code4you,I like to program, and do some App.</small>
+          <small>I'm a developer</small>
+          <small>Feel free to follow me on <a href="https://github.com/code4you2021">Github</a>.</small>
+        <small>
+          &copy; <time datetime="2021-10-17T11:25:11+08:00">2021</time>. All rights reserved.
+        </small>
+      </footer>
+    </div>
+
+    
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1WQVZK1CR7"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-18491817-18');
+    </script>
+    
+  </body>
+</html>

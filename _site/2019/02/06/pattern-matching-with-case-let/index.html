@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" content="swift ios development apple watch iphone ipad swiftui macos uikit dev wwdc tutorial guide redux tea state container" />
+
+  <!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Pattern Matching with case let | Code4You</title>
+<meta name="generator" content="Jekyll v3.9.0" />
+<meta property="og:title" content="Pattern Matching with case let" />
+<meta name="author" content="Code4You" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Today we will talk about Pattern Matching, one of my favorite features in Swift. Pattern Matching is the act of checking a given sequence of tokens for the presence of the constituents of some pattern. Swift has a particular keyword for applying Pattern Matching: case let. Let’s dive into examples." />
+<meta property="og:description" content="Today we will talk about Pattern Matching, one of my favorite features in Swift. Pattern Matching is the act of checking a given sequence of tokens for the presence of the constituents of some pattern. Swift has a particular keyword for applying Pattern Matching: case let. Let’s dive into examples." />
+<link rel="canonical" href="http://localhost:4000/2019/02/06/pattern-matching-with-case-let/" />
+<meta property="og:url" content="http://localhost:4000/2019/02/06/pattern-matching-with-case-let/" />
+<meta property="og:site_name" content="Code4You" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-02-06T00:00:00+08:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Pattern Matching with case let" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2019/02/06/pattern-matching-with-case-let/"},"url":"http://localhost:4000/2019/02/06/pattern-matching-with-case-let/","author":{"@type":"Person","name":"Code4You"},"headline":"Pattern Matching with case let","description":"Today we will talk about Pattern Matching, one of my favorite features in Swift. Pattern Matching is the act of checking a given sequence of tokens for the presence of the constituents of some pattern. Swift has a particular keyword for applying Pattern Matching: case let. Let’s dive into examples.","dateModified":"2019-02-06T00:00:00+08:00","datePublished":"2019-02-06T00:00:00+08:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+  <link rel="alternate" type="application/atom+xml" title="Code4You" href="/feed.xml">
+</head>
+
+
+  <body>
+
+    <div class="container content">
+      <header class="masthead">
+        <nav>
+          <h1 class="masthead-title">
+            <a href="/" title="Home">Code4You</a>
+          </h1>
+          <div>
+            <a href="/categories" title="Categories">Categories</a>
+            <a href="/archive" title="Archive">Archive</a>
+            <a href="/feed.xml" title="Feed">Feed</a>
+          </div>
+        </nav>
+      </header>
+
+      <main>
+        <article class="post">
+  <h2 class="post-title">Pattern Matching with case let</h2>
+  <time datetime="2019-02-06T00:00:00+08:00" class="post-date">06 Feb 2019</time>
+  <p>Today we will talk about Pattern Matching, one of my favorite features in Swift. Pattern Matching is the act of checking a given sequence of tokens for the presence of the constituents of some pattern. Swift has a particular keyword for applying Pattern Matching: <strong>case let</strong>. Let’s dive into examples.</p>
+
+<!-- <div class="ads">
+    <span>
+        Why don’t more iOS apps use voice? Machine learning for voice is hard, and using Siri is clunky and rigid. So we open-sourced an iOS library (also Android, Node, Python, & React Native), and built a no-code web tool to make custom wake words, speech recognizers, and AI voices—for all devs! <a href="https://www.spokestack.io/?utm_source=swiftui_weekly&utm_medium=email&utm_campaign=maker_launch_PAID">Try it for free.</a>
+    </span>
+</div> -->
+
+<h4 id="enums">Enums</h4>
+<p>Pattern Matching is very useful while working with enums. As a part of <a href="/2019/01/23/maintaining-state-in-view-controllers/">“Maintaining State in Your ViewControllers” post</a>, we talk about State enum, which describes the state of ViewController. Let’s see how we can efficiently use Pattern Matching with it.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">enum</span> <span class="kt">State</span><span class="o">&lt;</span><span class="kt">Data</span><span class="o">&gt;</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="n">loading</span>
+    <span class="k">case</span> <span class="nf">loaded</span><span class="p">(</span><span class="kt">Data</span><span class="p">)</span>
+    <span class="k">case</span> <span class="nf">failed</span><span class="p">(</span><span class="kt">Error</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="k">switch</span> <span class="n">state</span> <span class="p">{</span>
+<span class="k">case</span> <span class="o">.</span><span class="nv">loading</span><span class="p">:</span> <span class="nf">renderLoading</span><span class="p">()</span>
+<span class="k">case</span> <span class="kd">let</span> <span class="o">.</span><span class="nf">loaded</span><span class="p">(</span><span class="n">shows</span><span class="p">)</span> <span class="k">where</span> <span class="n">shows</span><span class="o">.</span><span class="nv">isEmpty</span><span class="p">:</span> <span class="nf">renderEmptyView</span><span class="p">()</span>
+<span class="k">case</span> <span class="kd">let</span> <span class="o">.</span><span class="nf">loaded</span><span class="p">(</span><span class="n">shows</span><span class="p">):</span> <span class="nf">render</span><span class="p">(</span><span class="n">shows</span><span class="p">)</span>
+<span class="k">case</span> <span class="kd">let</span> <span class="o">.</span><span class="nf">failed</span><span class="p">(</span><span class="n">error</span><span class="p">):</span> <span class="nf">render</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>While regular switching on enum with associated values we can also use <strong>case let</strong> keyword to match it to some pattern and assign associated value to a variable. Another beautiful option here is filtering associated value by using where keyword.</p>
+
+<h4 id="optionals">Optionals</h4>
+<p>Optional in Swift is the enum with two cases, so you can apply Pattern Matching as we do it before with enums. But in the case of optionals, we have some additional features. Let’s check the example code.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">let</span> <span class="nv">value</span><span class="p">:</span> <span class="kt">Int</span><span class="p">?</span> <span class="o">=</span> <span class="mi">10</span>
+
+<span class="k">switch</span> <span class="n">value</span> <span class="p">{</span>
+<span class="k">case</span> <span class="k">let</span> <span class="nv">value</span><span class="p">?</span> <span class="k">where</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">:</span> <span class="nf">print</span><span class="p">(</span><span class="s">"higher than ten"</span><span class="p">)</span>
+<span class="k">case</span> <span class="kd">let</span> <span class="o">.</span><span class="nf">some</span><span class="p">(</span><span class="n">value</span><span class="p">):</span> <span class="nf">print</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+<span class="k">case</span> <span class="o">.</span><span class="nv">none</span><span class="p">:</span> <span class="nf">print</span><span class="p">(</span><span class="s">"none"</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>value? here means the non-nil value of optional. So, it is the same as .some(value).</p>
+
+<h4 id="tuples">Tuples</h4>
+<p>Another good use case for Pattern Matching can be tuples. Tuples often used as lightweight types for grouping some data. Let’s see how we can use Pattern Matching on a tuple which presents authentication data.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">let</span> <span class="nv">auth</span> <span class="o">=</span> <span class="p">(</span><span class="nv">username</span><span class="p">:</span> <span class="s">"majid"</span><span class="p">,</span> <span class="nv">password</span><span class="p">:</span> <span class="s">"veryStrongPassword"</span><span class="p">)</span>
+
+<span class="k">switch</span> <span class="n">auth</span> <span class="p">{</span>
+<span class="k">case</span> <span class="p">(</span><span class="s">"admin"</span><span class="p">,</span> <span class="s">"admin"</span><span class="p">):</span> <span class="nf">renderAdmin</span><span class="p">()</span>
+<span class="k">case</span> <span class="k">let</span> <span class="p">(</span><span class="nv">_</span><span class="p">,</span> <span class="nv">password</span><span class="p">)</span> <span class="k">where</span> <span class="n">password</span><span class="o">.</span><span class="n">count</span> <span class="o">&lt;</span> <span class="mi">6</span><span class="p">:</span> <span class="nf">renderShortPasswordMessage</span><span class="p">()</span>
+<span class="k">case</span> <span class="k">let</span> <span class="p">(</span><span class="nv">username</span><span class="p">,</span> <span class="nv">password</span><span class="p">):</span> <span class="nf">renderUserProfile</span><span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>As you can see, we can apply to tuples all the matching features which we used with enums. We can also match the particular value to the tuple as we do for matching admin data.</p>
+
+<h4 id="case-let-with-flow-statements">case let with flow statements</h4>
+<p>I want to mention that you can easily use <strong>case let</strong> keyword with any flow control statement, let’s see how we can use it with if condition statements.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">if</span> <span class="k">case</span> <span class="kd">let</span> <span class="o">.</span><span class="nf">loaded</span><span class="p">(</span><span class="n">shows</span><span class="p">)</span> <span class="o">=</span> <span class="n">state</span><span class="p">,</span> <span class="n">shows</span><span class="o">.</span><span class="n">isEmpty</span> <span class="p">{</span>
+    <span class="nf">renderEmptyView</span><span class="p">()</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Same is possible with guard statement.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">guard</span> <span class="k">case</span> <span class="kd">let</span> <span class="o">.</span><span class="nf">loaded</span><span class="p">(</span><span class="n">shows</span><span class="p">)</span> <span class="o">=</span> <span class="n">state</span><span class="p">,</span> <span class="n">shows</span><span class="o">.</span><span class="n">isEmpty</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="c1">// Do something here</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Another compelling <strong>case let</strong> usage is possible with for-in loops, we can easily filter items.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">let</span> <span class="nv">stateHistory</span><span class="p">:</span> <span class="p">[</span><span class="kt">State</span><span class="o">&lt;</span><span class="p">[</span><span class="kt">Show</span><span class="p">]</span><span class="o">&gt;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="o">.</span><span class="nf">loaded</span><span class="p">([]),</span> <span class="o">.</span><span class="n">loading</span><span class="p">]</span>
+<span class="k">for</span> <span class="k">case</span> <span class="kd">let</span> <span class="o">.</span><span class="nf">loaded</span><span class="p">(</span><span class="n">shows</span><span class="p">)</span> <span class="k">in</span> <span class="n">stateHistory</span> <span class="k">where</span> <span class="n">shows</span><span class="o">.</span><span class="n">count</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="p">{</span>
+    <span class="c1">// Do something here</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h4 id="conclusion">Conclusion</h4>
+<p>Today we discussed how powerful can be Pattern Matching in Swift, and how we can use it in daily development. Feel free to follow me on <a href="https://twitter.com/mecid">Twitter</a> and ask your questions related to this post. Thanks for reading and see you next week!</p>
+
+</article>
+
+
+<aside class="related">
+  <h4>Recent posts</h4>
+  <ul class="related-posts">
+    
+      <li>
+        <a title="Custom accessibility content in SwiftUI" href="/2021/10/06/custom-accessibility-content-in-swiftui/">
+          Custom accessibility content in SwiftUI
+          <small><time datetime="2021-10-06T00:00:00+08:00">06 Oct 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Audio graphs in SwiftUI" href="/2021/09/29/audio-graphs-in-swiftui/">
+          Audio graphs in SwiftUI
+          <small><time datetime="2021-09-29T00:00:00+08:00">29 Sep 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Accessibility focus in SwiftUI" href="/2021/09/23/accessibility-focus-in-swiftui/">
+          Accessibility focus in SwiftUI
+          <small><time datetime="2021-09-23T00:00:00+08:00">23 Sep 2021</time></small>
+        </a>
+      </li>
+    
+  </ul>
+</aside>
+
+
+      </main>
+
+      <footer class="footer">
+          <img class="avatar" alt="mecid" width="100" height="100" data-proofer-ignore="true" src="https://avatars2.githubusercontent.com/mecid?v=3&s=100" srcset="https://avatars2.githubusercontent.com/mecid?v=3&s=100 1x, https://avatars2.githubusercontent.com/mecid?v=3&s=200 2x, https://avatars2.githubusercontent.com/mecid?v=3&s=300 3x, https://avatars2.githubusercontent.com/mecid?v=3&s=400 4x" />
+          <small>Hi there! I am code4you,I like to program, and do some App.</small>
+          <small>I'm a developer</small>
+          <small>Feel free to follow me on <a href="https://github.com/code4you2021">Github</a>.</small>
+        <small>
+          &copy; <time datetime="2021-10-17T11:25:11+08:00">2021</time>. All rights reserved.
+        </small>
+      </footer>
+    </div>
+
+    
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1WQVZK1CR7"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-18491817-18');
+    </script>
+    
+  </body>
+</html>

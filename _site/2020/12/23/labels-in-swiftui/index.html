@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" content="swift ios development apple watch iphone ipad swiftui macos uikit dev wwdc tutorial guide redux tea state container" />
+
+  <!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Labels in SwiftUI | Code4You</title>
+<meta name="generator" content="Jekyll v3.9.0" />
+<meta property="og:title" content="Labels in SwiftUI" />
+<meta name="author" content="Code4You" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="We often underestimate the power of simple things. The same feelings I had during the first usage of Label view in SwiftUI. It looks straightforward, but it hides many use cases where it works great. Today we will talk about the Label view and its customization capabilities." />
+<meta property="og:description" content="We often underestimate the power of simple things. The same feelings I had during the first usage of Label view in SwiftUI. It looks straightforward, but it hides many use cases where it works great. Today we will talk about the Label view and its customization capabilities." />
+<link rel="canonical" href="http://localhost:4000/2020/12/23/labels-in-swiftui/" />
+<meta property="og:url" content="http://localhost:4000/2020/12/23/labels-in-swiftui/" />
+<meta property="og:site_name" content="Code4You" />
+<meta property="og:image" content="http://localhost:4000/public/swiftui.png" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2020-12-23T00:00:00+08:00" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta property="twitter:image" content="http://localhost:4000/public/swiftui.png" />
+<meta property="twitter:title" content="Labels in SwiftUI" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2020/12/23/labels-in-swiftui/"},"url":"http://localhost:4000/2020/12/23/labels-in-swiftui/","image":"http://localhost:4000/public/swiftui.png","author":{"@type":"Person","name":"Code4You"},"headline":"Labels in SwiftUI","description":"We often underestimate the power of simple things. The same feelings I had during the first usage of Label view in SwiftUI. It looks straightforward, but it hides many use cases where it works great. Today we will talk about the Label view and its customization capabilities.","dateModified":"2020-12-23T00:00:00+08:00","datePublished":"2020-12-23T00:00:00+08:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+  <link rel="alternate" type="application/atom+xml" title="Code4You" href="/feed.xml">
+</head>
+
+
+  <body>
+
+    <div class="container content">
+      <header class="masthead">
+        <nav>
+          <h1 class="masthead-title">
+            <a href="/" title="Home">Code4You</a>
+          </h1>
+          <div>
+            <a href="/categories" title="Categories">Categories</a>
+            <a href="/archive" title="Archive">Archive</a>
+            <a href="/feed.xml" title="Feed">Feed</a>
+          </div>
+        </nav>
+      </header>
+
+      <main>
+        <article class="post">
+  <h2 class="post-title">Labels in SwiftUI</h2>
+  <time datetime="2020-12-23T00:00:00+08:00" class="post-date">23 Dec 2020</time>
+  <p>We often underestimate the power of simple things. The same feelings I had during the first usage of <em>Label</em> view in SwiftUI. It looks straightforward, but it hides many use cases where it works great. Today we will talk about the <em>Label</em> view and its customization capabilities.</p>
+
+<!-- <div class="ads">
+    <span>
+        Why don’t more iOS apps use voice? Machine learning for voice is hard, and using Siri is clunky and rigid. So we open-sourced an iOS library (also Android, Node, Python, & React Native), and built a no-code web tool to make custom wake words, speech recognizers, and AI voices—for all devs! <a href="https://www.spokestack.io/?utm_source=swiftui_weekly&utm_medium=email&utm_campaign=maker_launch_PAID">Try it for free.</a>
+    </span>
+</div> -->
+
+<h4 id="basics">Basics</h4>
+<p><em>Label</em> is a standard component for user interface items, consisting of an icon with a title. One of the most common and recognizable user interface components is the combination of an icon and a label. Let’s take a look at how easily we can use it in code.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">ContentView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="c1">// SF Symbol</span>
+        <span class="kt">Label</span><span class="p">(</span><span class="s">"Heart Rate"</span><span class="p">,</span> <span class="nv">systemImage</span><span class="p">:</span> <span class="s">"heart.fill"</span><span class="p">)</span>
+        
+        <span class="c1">// Image from app bundle</span>
+        <span class="kt">Label</span><span class="p">(</span><span class="s">"ECG"</span><span class="p">,</span> <span class="nv">image</span><span class="p">:</span> <span class="s">"ecg"</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><img src="/public/label.png" alt="label" /></p>
+
+<p>As you can see, we create a label by passing two parameters to the initializer. The first one is a title that we can pass as a plain string or <em>LocalizedStringKey</em>. The second one is an image, a system image from the SF Symbols collection, or your custom image from the app bundle.</p>
+
+<blockquote>
+  <p>To learn more about <em>LocalizedStringKey</em>, take a look at <a href="/2019/10/16/localization-in-swiftui/">“Localization in SwiftUI”</a> post.</p>
+</blockquote>
+
+<p>Another initializer overload allows you to define a label using two <em>@ViewBuilder</em> closures to build the <em>Label</em> view.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">ContentView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">Label</span> <span class="p">{</span>
+            <span class="kt">Text</span><span class="p">(</span><span class="s">"Hello"</span><span class="p">)</span>
+        <span class="p">}</span> <span class="nv">icon</span><span class="p">:</span> <span class="p">{</span>
+            <span class="kt">Image</span><span class="p">(</span><span class="nv">systemName</span><span class="p">:</span> <span class="s">"heart"</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>The main thing that I love about the <em>Label</em> view is how it deals with accessibility. It combines both image and title in a single accessibility element and uses the title as an accessibility label for the whole view. This is usually what we want to achieve while using a stack with an image and text describing that image.</p>
+
+<blockquote>
+  <p>To learn more about accessibility labels and VoiceOver, take a look at my <a href="/2019/09/10/accessibility-in-swiftui/">“Accessibility in SwiftUI”</a> post.</p>
+</blockquote>
+
+<h4 id="styling">Styling</h4>
+<p>SwiftUI provides us <em>LabelStyle</em> protocol to implement different styling options for our labels. There are already three style options coming with SwiftUI out of the box. You might be already familiar with style protocols in SwiftUI, as I already covered it on my blog a few times.</p>
+
+<p>SwiftUI gives us <em>DefaultLabelStyle</em>, <em>IconOnlyLabelStyle</em> and <em>TitleOnlyLabelStyle</em> style options to use out of the box. The default one is <em>DefaultLabelStyle</em> that shows both title and image. <em>IconOnlyLabelStyle</em> shows only the image, and <em>TitleOnlyLabelStyle</em> shows the title only.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">ContentView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">Label</span><span class="p">(</span><span class="s">"Heart Rate"</span><span class="p">,</span> <span class="nv">systemImage</span><span class="p">:</span> <span class="s">"heart.fill"</span><span class="p">)</span>
+            <span class="o">.</span><span class="nf">labelStyle</span><span class="p">(</span><span class="kt">IconOnlyLabelStyle</span><span class="p">())</span>
+        <span class="kt">Label</span><span class="p">(</span><span class="s">"ECG"</span><span class="p">,</span> <span class="nv">image</span><span class="p">:</span> <span class="s">"ecg"</span><span class="p">)</span>
+            <span class="o">.</span><span class="nf">labelStyle</span><span class="p">(</span><span class="kt">TitleOnlyLabelStyle</span><span class="p">())</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>The great thing about style protocols is that you can create your own implementation and place the items the way you need. Let’s try to build another style that will place the icon and title in a horizontal or vertical stack depending on the current accessibility category.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">AccessibleLabelStyle</span><span class="p">:</span> <span class="kt">LabelStyle</span> <span class="p">{</span>
+    <span class="kd">@Environment</span><span class="p">(\</span><span class="o">.</span><span class="n">sizeCategory</span><span class="p">)</span> <span class="k">var</span> <span class="nv">sizeCategory</span>
+
+    <span class="kd">@ViewBuilder</span>
+    <span class="kd">func</span> <span class="nf">makeBody</span><span class="p">(</span><span class="nv">configuration</span><span class="p">:</span> <span class="kt">Configuration</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="n">sizeCategory</span><span class="o">.</span><span class="n">isAccessibilityCategory</span> <span class="p">{</span>
+            <span class="kt">VStack</span> <span class="p">{</span>
+                <span class="n">configuration</span><span class="o">.</span><span class="n">icon</span>
+                <span class="n">configuration</span><span class="o">.</span><span class="n">title</span>
+            <span class="p">}</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+            <span class="kt">HStack</span> <span class="p">{</span>
+                <span class="n">configuration</span><span class="o">.</span><span class="n">icon</span>
+                <span class="n">configuration</span><span class="o">.</span><span class="n">title</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">struct</span> <span class="kt">ContentView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">Button</span><span class="p">(</span><span class="nv">action</span><span class="p">:</span> <span class="p">{})</span> <span class="p">{</span>
+            <span class="kt">Label</span><span class="p">(</span><span class="s">"Heart Rate"</span><span class="p">,</span> <span class="nv">systemImage</span><span class="p">:</span> <span class="s">"heart.fill"</span><span class="p">)</span>
+        <span class="p">}</span><span class="o">.</span><span class="nf">labelStyle</span><span class="p">(</span><span class="kt">AccessibleLabelStyle</span><span class="p">())</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>As you can see in the example above, we create a custom label style called <em>AccessibleLabelStyle</em>. It uses the environment to read the size category and layout items appropriately. We use <em>labelStyle</em> modifier to set and share the style for labels using the environment.</p>
+
+<blockquote>
+  <p>To learn more about sharing styles using the environment, take a look at my <a href="/2020/12/09/styling-custom-swiftui-views-using-environment/">“Styling custom SwiftUI views using environment”</a> post.</p>
+</blockquote>
+
+<h4 id="conclusion">Conclusion</h4>
+<p>Today we learned about another great SwiftUI view that provides us a lot of ways for customization and styling. I hope you enjoy the post. Feel free to follow me on <a href="https://twitter.com/mecid">Twitter</a> and ask your questions related to this article. Thanks for reading, and see you next week!</p>
+
+</article>
+
+
+<aside class="related">
+  <h4>Recent posts</h4>
+  <ul class="related-posts">
+    
+      <li>
+        <a title="Custom accessibility content in SwiftUI" href="/2021/10/06/custom-accessibility-content-in-swiftui/">
+          Custom accessibility content in SwiftUI
+          <small><time datetime="2021-10-06T00:00:00+08:00">06 Oct 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Audio graphs in SwiftUI" href="/2021/09/29/audio-graphs-in-swiftui/">
+          Audio graphs in SwiftUI
+          <small><time datetime="2021-09-29T00:00:00+08:00">29 Sep 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Accessibility focus in SwiftUI" href="/2021/09/23/accessibility-focus-in-swiftui/">
+          Accessibility focus in SwiftUI
+          <small><time datetime="2021-09-23T00:00:00+08:00">23 Sep 2021</time></small>
+        </a>
+      </li>
+    
+  </ul>
+</aside>
+
+
+      </main>
+
+      <footer class="footer">
+          <img class="avatar" alt="mecid" width="100" height="100" data-proofer-ignore="true" src="https://avatars2.githubusercontent.com/mecid?v=3&s=100" srcset="https://avatars2.githubusercontent.com/mecid?v=3&s=100 1x, https://avatars2.githubusercontent.com/mecid?v=3&s=200 2x, https://avatars2.githubusercontent.com/mecid?v=3&s=300 3x, https://avatars2.githubusercontent.com/mecid?v=3&s=400 4x" />
+          <small>Hi there! I am code4you,I like to program, and do some App.</small>
+          <small>I'm a developer</small>
+          <small>Feel free to follow me on <a href="https://github.com/code4you2021">Github</a>.</small>
+        <small>
+          &copy; <time datetime="2021-10-17T11:25:11+08:00">2021</time>. All rights reserved.
+        </small>
+      </footer>
+    </div>
+
+    
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1WQVZK1CR7"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-18491817-18');
+    </script>
+    
+  </body>
+</html>

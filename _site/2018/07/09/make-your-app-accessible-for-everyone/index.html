@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" content="swift ios development apple watch iphone ipad swiftui macos uikit dev wwdc tutorial guide redux tea state container" />
+
+  <!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Make your app accessible for everyone | Code4You</title>
+<meta name="generator" content="Jekyll v3.9.0" />
+<meta property="og:title" content="Make your app accessible for everyone" />
+<meta name="author" content="Code4You" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Last few months I was working on implementing Accessibility support for my app. During this years WWDC I’ve visited all Accessibility related sessions and Labs to improve my knowledge and catch some best practices from Apple Engineers. So now I’m finished my work and finally ready to share with you story of my Accessibility way." />
+<meta property="og:description" content="Last few months I was working on implementing Accessibility support for my app. During this years WWDC I’ve visited all Accessibility related sessions and Labs to improve my knowledge and catch some best practices from Apple Engineers. So now I’m finished my work and finally ready to share with you story of my Accessibility way." />
+<link rel="canonical" href="http://localhost:4000/2018/07/09/make-your-app-accessible-for-everyone/" />
+<meta property="og:url" content="http://localhost:4000/2018/07/09/make-your-app-accessible-for-everyone/" />
+<meta property="og:site_name" content="Code4You" />
+<meta property="og:image" content="http://localhost:4000/public/accessibility.jpeg" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2018-07-09T00:00:00+08:00" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta property="twitter:image" content="http://localhost:4000/public/accessibility.jpeg" />
+<meta property="twitter:title" content="Make your app accessible for everyone" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2018/07/09/make-your-app-accessible-for-everyone/"},"url":"http://localhost:4000/2018/07/09/make-your-app-accessible-for-everyone/","image":"http://localhost:4000/public/accessibility.jpeg","author":{"@type":"Person","name":"Code4You"},"headline":"Make your app accessible for everyone","description":"Last few months I was working on implementing Accessibility support for my app. During this years WWDC I’ve visited all Accessibility related sessions and Labs to improve my knowledge and catch some best practices from Apple Engineers. So now I’m finished my work and finally ready to share with you story of my Accessibility way.","dateModified":"2018-07-09T00:00:00+08:00","datePublished":"2018-07-09T00:00:00+08:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+  <link rel="alternate" type="application/atom+xml" title="Code4You" href="/feed.xml">
+</head>
+
+
+  <body>
+
+    <div class="container content">
+      <header class="masthead">
+        <nav>
+          <h1 class="masthead-title">
+            <a href="/" title="Home">Code4You</a>
+          </h1>
+          <div>
+            <a href="/categories" title="Categories">Categories</a>
+            <a href="/archive" title="Archive">Archive</a>
+            <a href="/feed.xml" title="Feed">Feed</a>
+          </div>
+        </nav>
+      </header>
+
+      <main>
+        <article class="post">
+  <h2 class="post-title">Make your app accessible for everyone</h2>
+  <time datetime="2018-07-09T00:00:00+08:00" class="post-date">09 Jul 2018</time>
+  <p>Last few months I was working on implementing Accessibility support for my app. During this years WWDC I’ve visited all Accessibility related sessions and Labs to improve my knowledge and catch some best practices from Apple Engineers. So now I’m finished my work and finally ready to share with you story of my Accessibility way.</p>
+
+<!-- <div class="ads">
+    <span>
+        Why don’t more iOS apps use voice? Machine learning for voice is hard, and using Siri is clunky and rigid. So we open-sourced an iOS library (also Android, Node, Python, & React Native), and built a no-code web tool to make custom wake words, speech recognizers, and AI voices—for all devs! <a href="https://www.spokestack.io/?utm_source=swiftui_weekly&utm_medium=email&utm_campaign=maker_launch_PAID">Try it for free.</a>
+    </span>
+</div> -->
+
+<p>First of all, I would like to mention that Apple had done a great job with Accessibility framework. Most of the things handled by the system without our action. All the UIKit controls have Accessibility support out of the box. <em>UIButton, UILabel, UISegmentedControl, UISwitch,</em> etc. are ready to be used by assistive technologies like VoiceOver, Switch Control, etc. If you’re not familiar with VoiceOver technology, I suggest watching this <a href="https://developer.apple.com/videos/play/wwdc2018/226/">talk</a> from last WWDC event.</p>
+
+<p>Let’s check out my app called <a href="https://cardiobot.swiftwithmajid.com">CardioBot</a>. It is Heart Rate analyzer for iOS and watchOS. CardioBot has a massive amount of data presented in charts and other visual ways, which are custom views and don’t support Accessibility out of the box. Good news is that it is easy to add Accessibility support to our custom views.</p>
+
+<p><img src="/public/cardiobot.jpg" alt="CardioBot" /></p>
+
+<h4 id="group-elements-inside-cells">Group elements inside cells</h4>
+<p>As you can see on the first screen, I have a <em>UICollectionView</em> which represents the current month with cells for every day. DayCell is a class which uses two labels to describe daily information: date and average heart rate. I am also using label background color to express the heart rate zone.
+VoiceOver users are moving through the app by using right and left swipe gestures. These gestures navigate VoiceOver focus on next and previous elements respectively. So VoiceOver focus will switch from label to label and read the text content of every label. However, this is not very easy for users; they have to do many swipes to understand the data. I would like to ask VoiceOver to focus on cell entire, not on every label inside and read the specially formatted string as cell content.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">self</span><span class="o">.</span><span class="n">isAccessibilityElement</span> <span class="o">=</span> <span class="kc">true</span>
+<span class="k">self</span><span class="o">.</span><span class="n">accessibilityLabel</span> <span class="o">=</span> <span class="s">"</span><span class="se">\(</span><span class="n">date</span><span class="se">)</span><span class="s">, </span><span class="se">\(</span><span class="n">value</span><span class="se">)</span><span class="s"> - </span><span class="se">\(</span><span class="n">status</span><span class="se">)</span><span class="s">"</span>
+<span class="k">self</span><span class="o">.</span><span class="n">accessibilityTraits</span> <span class="o">|=</span> <span class="kt">UIAccessibilityTraitButton</span>
+</code></pre></div></div>
+
+<p>Setting <em>isAccessibilityElement</em> property to true on <em>UICollectionViewCell</em> makes it appear as a single Accessibility element. I am also set a formatted string to <em>accessibilityLabel</em> property to make it easier to understand data which presented by this cell. To describe the action which user can do on the cell, I am using <em>UIAccessibilityTraitButton</em> trait. This trait indicates to VoiceOver that it is a button and can be selected or activated by the user. So when VoiceOver focused on the DayCell, it pronounces the phrase like:
+“December 1st, 69 — Resting. Button.” When the user swipes right to next element VoiceOver pronounces: “December 2nd, 78 — High resting. Button.”</p>
+
+<h4 id="charts">Charts</h4>
+<p>On the second screen, you can see that I use a custom view to display a chart of heart rate zones during the day. To make it accessible just set to true <em>isAccessibilityElement</em> property, set formatted string as <em>accessibilityLabel</em> and add <em>UIAccessibilityTraitStaticText</em> trait to <em>accessibilityTraits</em> property of the custom view. I wrote small Formatter class which generates a string from heart rate data. So when VoiceOver focuses on chart view, it pronounces phrase like: “Low — 12%, Resting — 64%, High Resting — 16%, Elevated — 7%”.</p>
+
+<p>On the third screen, CardioBot displays a detailed heart rate chart with a 4-minute interval. I would like to make it possible to focus VoiceOver on every bar inside the chart, pronounce the time and value for a selected period and easily move between the bars. As I say before this is a custom view with the overridden <em>drawInRect</em> method which handles plotting logic that’s why we don’t have accessibility support out of the box here. Happily, we have a particular API for this kind of situations. We can set an array of Accessibility elements inside a custom view.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">let</span> <span class="nv">elements</span> <span class="o">=</span> <span class="n">statistics</span><span class="o">.</span><span class="nf">enumerated</span><span class="p">()</span><span class="o">.</span><span class="n">map</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">frame</span> <span class="o">=</span> <span class="kt">CGRect</span><span class="p">(</span>
+        <span class="nv">x</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> 
+        <span class="nv">y</span><span class="p">:</span> <span class="kt">CGFloat</span><span class="p">(</span><span class="nv">$0</span> <span class="o">*</span> <span class="kt">Layout</span><span class="o">.</span><span class="n">barHeight</span><span class="p">),</span> 
+        <span class="nv">width</span><span class="p">:</span> <span class="n">bounds</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> 
+        <span class="nv">height</span><span class="p">:</span> <span class="kt">Layout</span><span class="o">.</span><span class="n">barHeight</span>
+    <span class="p">)</span>
+    
+    <span class="k">let</span> <span class="nv">element</span> <span class="o">=</span> <span class="kt">UIAccessibilityElement</span><span class="p">(</span><span class="nv">accessibilityContainer</span><span class="p">:</span> <span class="k">self</span><span class="p">)</span>
+    <span class="n">element</span><span class="o">.</span><span class="n">accessibilityLabel</span> <span class="o">=</span> <span class="nv">$1</span><span class="o">.</span><span class="n">time</span>
+    <span class="n">element</span><span class="o">.</span><span class="n">accessibilityValue</span> <span class="o">=</span> <span class="s">"</span><span class="se">\(</span><span class="kt">Int</span><span class="p">(</span><span class="nv">$1</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="se">)</span><span class="s">, </span><span class="se">\(</span><span class="nv">$1</span><span class="o">.</span><span class="n">status</span><span class="se">)</span><span class="s">"</span>
+    <span class="n">element</span><span class="o">.</span><span class="n">accessibilityFrameInContainerSpace</span> <span class="o">=</span> <span class="n">frame</span>
+    <span class="k">return</span> <span class="n">element</span>
+<span class="p">}</span>
+
+<span class="k">self</span><span class="o">.</span><span class="n">accessibilityElements</span> <span class="o">=</span> <span class="n">elements</span>
+</code></pre></div></div>
+
+<p>Pay attention to <em>accessibilityFrameInContainerSpace</em> property which is a frame inside chart view which used to highlight focused area by VoiceOver.</p>
+
+<h4 id="traits">Traits</h4>
+<p>Accessibility trait is a type of accessibility element which used by VoiceOver to describe available actions on it. For example, <em>UIAccessibilityTraitAdjustable</em> trait used to describe adjustable elements like <em>UISlider</em>. When VoiceOver focused on the adjustable view user can use swipe up and swipe down gestures to increment or decrement the value of the component. That’s why you have to implement <em>accessibilityIncrement</em> and <em>accessibilityDecrement</em> methods of <em>UIAccessibilityAction</em> protocol to handle these gestures.</p>
+
+<p>Another useful trait is <em>UIAccessibilityTraitHeader</em>. Marking section header labels with this trait add the opportunity for VoiceOver to recognize sections and navigate between them by using rotor navigation.</p>
+
+<p>Day details screen has various sections like Summary, HRV, Sleep, Weekly sleep, Workout. For example every morning I would like to check out how healthy was my sleep and I don’t need to navigate to the Sleep section through all these elements. To use the rotor, rotate two fingers on your iOS device’s screen as if you’re turning a dial. VoiceOver will say the first rotor option. Keep rotating your fingers to hear more options. Lift your fingers to choose an option. After selecting the headings option, flick your finger up or down on the screen to use it.</p>
+
+<h4 id="exit-gesture">Exit gesture</h4>
+<p>VoiceOver users use two fingers Z-gesture to go back to the previous screen or close modal window. Handling of this gesture implemented by default for <em>UINavigationController</em> and <em>UIStoryboard</em> segues, and you don’t need to do something to achieve this behavior. However, sometimes we are showing <em>UIViewController</em> by calling <em>present()</em> method, in this case, we have to override <em>accessibilityPerformEscape</em> method on presented <em>UIViewController</em> and call <em>dismiss()</em> manually to exit.</p>
+
+<h4 id="hints">Hints</h4>
+<p>Another interesting property on <em>UIAccessibility</em> protocol is <em>accessibilityHint</em>. This property used by VoiceOver to describe the result of action on accessibility element. For example, I use it to indicate to users that activating chart control display the detailed chart. Be careful and don’t put here some valuable data because the user can disable this feature and VoiceOver will ignore hint labels. Follow these guidelines to describe your hints in a clean way.</p>
+
+<h4 id="small-things-matter">Small things matter</h4>
+<p>Besides the heart rate analysis CardioBot also shows some activity summary like total step count, walking distance and calories. I use HealthKit to calculate all this stuff. Some of my users have motor disabilities and use a wheelchair to move around. For this users, I apply another query to calculate wheelchair pushes instead of steps. It takes me about 30 minutes to implement this feature, but my users were pleased.</p>
+
+<h4 id="conclusion">Conclusion</h4>
+<p>I suggest you watch this two sessions from WWDC18:</p>
+
+<ol>
+  <li><a href="https://developer.apple.com/videos/play/wwdc2018/226/">VoiceOver: App Testing Beyond The Visuals</a></li>
+  <li><a href="https://developer.apple.com/videos/play/wwdc2018/230/">Deliver an Exceptional Accessibility Experience</a></li>
+</ol>
+
+<p>Accessibility isn’t a feature or a “nice to have.” <strong>It’s a necessity</strong>. So let’s make your app accessible for everyone.</p>
+
+</article>
+
+
+<aside class="related">
+  <h4>Recent posts</h4>
+  <ul class="related-posts">
+    
+      <li>
+        <a title="Custom accessibility content in SwiftUI" href="/2021/10/06/custom-accessibility-content-in-swiftui/">
+          Custom accessibility content in SwiftUI
+          <small><time datetime="2021-10-06T00:00:00+08:00">06 Oct 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Audio graphs in SwiftUI" href="/2021/09/29/audio-graphs-in-swiftui/">
+          Audio graphs in SwiftUI
+          <small><time datetime="2021-09-29T00:00:00+08:00">29 Sep 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Accessibility focus in SwiftUI" href="/2021/09/23/accessibility-focus-in-swiftui/">
+          Accessibility focus in SwiftUI
+          <small><time datetime="2021-09-23T00:00:00+08:00">23 Sep 2021</time></small>
+        </a>
+      </li>
+    
+  </ul>
+</aside>
+
+
+      </main>
+
+      <footer class="footer">
+          <img class="avatar" alt="mecid" width="100" height="100" data-proofer-ignore="true" src="https://avatars2.githubusercontent.com/mecid?v=3&s=100" srcset="https://avatars2.githubusercontent.com/mecid?v=3&s=100 1x, https://avatars2.githubusercontent.com/mecid?v=3&s=200 2x, https://avatars2.githubusercontent.com/mecid?v=3&s=300 3x, https://avatars2.githubusercontent.com/mecid?v=3&s=400 4x" />
+          <small>Hi there! I am code4you,I like to program, and do some App.</small>
+          <small>I'm a developer</small>
+          <small>Feel free to follow me on <a href="https://github.com/code4you2021">Github</a>.</small>
+        <small>
+          &copy; <time datetime="2021-10-17T11:25:11+08:00">2021</time>. All rights reserved.
+        </small>
+      </footer>
+    </div>
+
+    
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1WQVZK1CR7"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-18491817-18');
+    </script>
+    
+  </body>
+</html>

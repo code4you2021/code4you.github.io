@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" content="swift ios development apple watch iphone ipad swiftui macos uikit dev wwdc tutorial guide redux tea state container" />
+
+  <!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Building type-safe networking in Swift | Code4You</title>
+<meta name="generator" content="Jekyll v3.9.0" />
+<meta property="og:title" content="Building type-safe networking in Swift" />
+<meta name="author" content="Code4You" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="More than half of the apps I built during my career had networking code. Usually, we build apps for web services. Today we will talk about building the type-safe networking layer using Swift language features like enums, phantom types, and extensions." />
+<meta property="og:description" content="More than half of the apps I built during my career had networking code. Usually, we build apps for web services. Today we will talk about building the type-safe networking layer using Swift language features like enums, phantom types, and extensions." />
+<link rel="canonical" href="http://localhost:4000/2021/02/10/building-type-safe-networking-in-swift/" />
+<meta property="og:url" content="http://localhost:4000/2021/02/10/building-type-safe-networking-in-swift/" />
+<meta property="og:site_name" content="Code4You" />
+<meta property="og:image" content="http://localhost:4000/public/networking.jpg" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2021-02-10T00:00:00+08:00" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta property="twitter:image" content="http://localhost:4000/public/networking.jpg" />
+<meta property="twitter:title" content="Building type-safe networking in Swift" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2021/02/10/building-type-safe-networking-in-swift/"},"url":"http://localhost:4000/2021/02/10/building-type-safe-networking-in-swift/","image":"http://localhost:4000/public/networking.jpg","author":{"@type":"Person","name":"Code4You"},"headline":"Building type-safe networking in Swift","description":"More than half of the apps I built during my career had networking code. Usually, we build apps for web services. Today we will talk about building the type-safe networking layer using Swift language features like enums, phantom types, and extensions.","dateModified":"2021-02-10T00:00:00+08:00","datePublished":"2021-02-10T00:00:00+08:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+  <link rel="alternate" type="application/atom+xml" title="Code4You" href="/feed.xml">
+</head>
+
+
+  <body>
+
+    <div class="container content">
+      <header class="masthead">
+        <nav>
+          <h1 class="masthead-title">
+            <a href="/" title="Home">Code4You</a>
+          </h1>
+          <div>
+            <a href="/categories" title="Categories">Categories</a>
+            <a href="/archive" title="Archive">Archive</a>
+            <a href="/feed.xml" title="Feed">Feed</a>
+          </div>
+        </nav>
+      </header>
+
+      <main>
+        <article class="post">
+  <h2 class="post-title">Building type-safe networking in Swift</h2>
+  <time datetime="2021-02-10T00:00:00+08:00" class="post-date">10 Feb 2021</time>
+  <p>More than half of the apps I built during my career had networking code. Usually, we build apps for web services. Today we will talk about building the type-safe networking layer using Swift language features like enums, phantom types, and extensions.</p>
+
+<!-- <div class="ads">
+    <span>
+        Why don’t more iOS apps use voice? Machine learning for voice is hard, and using Siri is clunky and rigid. So we open-sourced an iOS library (also Android, Node, Python, & React Native), and built a no-code web tool to make custom wake words, speech recognizers, and AI voices—for all devs! <a href="https://www.spokestack.io/?utm_source=swiftui_weekly&utm_medium=email&utm_campaign=maker_launch_PAID">Try it for free.</a>
+    </span>
+</div> -->
+
+<h4 id="basics">Basics</h4>
+<p>Let’s first take a look at the typical networking code and recognize the issues that we want to avoid in our solution.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">Repo</span><span class="p">:</span> <span class="kt">Decodable</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">id</span><span class="p">:</span> <span class="kt">Int</span>
+    <span class="k">let</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span>
+<span class="p">}</span>
+
+<span class="kd">struct</span> <span class="kt">SearchResponse</span><span class="p">:</span> <span class="kt">Decodable</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">items</span><span class="p">:</span> <span class="p">[</span><span class="kt">Repo</span><span class="p">]</span>
+<span class="p">}</span>
+
+<span class="k">let</span> <span class="nv">query</span> <span class="o">=</span> <span class="s">"Swift"</span>
+<span class="k">let</span> <span class="nv">url</span> <span class="o">=</span> <span class="kt">URL</span><span class="p">(</span><span class="nv">string</span><span class="p">:</span> <span class="s">"https://api.github.com/search/repositories?q=</span><span class="se">\(</span><span class="n">query</span><span class="se">)</span><span class="s">"</span><span class="p">)</span><span class="o">!</span>
+<span class="k">var</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">URLRequest</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span> <span class="n">url</span><span class="p">)</span>
+<span class="n">request</span><span class="o">.</span><span class="n">httpMethod</span> <span class="o">=</span> <span class="s">"GET"</span>
+<span class="n">request</span><span class="o">.</span><span class="n">httpBody</span> <span class="o">=</span> <span class="kc">nil</span>
+
+<span class="k">let</span> <span class="nv">cancellable</span> <span class="o">=</span> <span class="kt">URLSession</span><span class="o">.</span><span class="n">shared</span><span class="o">.</span><span class="nf">dataTaskPublisher</span><span class="p">(</span><span class="nv">for</span><span class="p">:</span> <span class="n">request</span><span class="p">)</span>
+    <span class="o">.</span><span class="nf">map</span><span class="p">(\</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+    <span class="o">.</span><span class="nf">decode</span><span class="p">(</span><span class="nv">type</span><span class="p">:</span> <span class="kt">SearchResponse</span><span class="o">.</span><span class="k">self</span><span class="p">,</span> <span class="nv">decoder</span><span class="p">:</span> <span class="kt">JSONDecoder</span><span class="p">())</span>
+    <span class="o">.</span><span class="nf">map</span><span class="p">(\</span><span class="o">.</span><span class="n">items</span><span class="p">)</span>
+    <span class="o">.</span><span class="nf">replaceError</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="p">[])</span>
+    <span class="o">.</span><span class="n">sink</span> <span class="p">{</span> <span class="nf">print</span><span class="p">(</span><span class="nv">$0</span><span class="p">)</span> <span class="p">}</span>
+</code></pre></div></div>
+
+<p>In the example above, we have a standard networking code that creates the request and decodes the response. There are a few things that I want to avoid in the future.</p>
+<ol>
+  <li>We create a GET request, but there is a possibility to set an HTTP body for a GET request, which looks meaningless.</li>
+  <li>We try to decode the response by providing the type of resulting data. Usually, every request has one and only one type that we can obtain. In this case, it is better to have the response type encoded into the request.</li>
+</ol>
+
+<p>Let’s start building our type-safe networking by introducing the <em>Request</em> type. The <em>Request</em> type should contain the URL we need to access, headers, and HTTP method.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">Request</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">url</span><span class="p">:</span> <span class="kt">URL</span>
+    <span class="k">let</span> <span class="nv">method</span><span class="p">:</span> <span class="kt">HttpMethod</span>
+    <span class="k">var</span> <span class="nv">headers</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">:</span> <span class="kt">String</span><span class="p">]</span> <span class="o">=</span> <span class="p">[:]</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>The HTTP method is an exclusive thing. You can’t use both GET and POST, and you can choose only one HTTP method. It looks like a perfect use-case for an enum type.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">enum</span> <span class="kt">HttpMethod</span><span class="p">:</span> <span class="kt">Equatable</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="nf">get</span><span class="p">([</span><span class="kt">URLQueryItem</span><span class="p">])</span>
+    <span class="k">case</span> <span class="nf">put</span><span class="p">(</span><span class="kt">Data</span><span class="p">?)</span>
+    <span class="k">case</span> <span class="nf">post</span><span class="p">(</span><span class="kt">Data</span><span class="p">?)</span>
+    <span class="k">case</span> <span class="n">delete</span>
+    <span class="k">case</span> <span class="n">head</span>
+
+    <span class="k">var</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span> <span class="p">{</span>
+        <span class="k">switch</span> <span class="k">self</span> <span class="p">{</span>
+        <span class="k">case</span> <span class="o">.</span><span class="nv">get</span><span class="p">:</span> <span class="k">return</span> <span class="s">"GET"</span>
+        <span class="k">case</span> <span class="o">.</span><span class="nv">put</span><span class="p">:</span> <span class="k">return</span> <span class="s">"PUT"</span>
+        <span class="k">case</span> <span class="o">.</span><span class="nv">post</span><span class="p">:</span> <span class="k">return</span> <span class="s">"POST"</span>
+        <span class="k">case</span> <span class="o">.</span><span class="nv">delete</span><span class="p">:</span> <span class="k">return</span> <span class="s">"DELETE"</span>
+        <span class="k">case</span> <span class="o">.</span><span class="nv">head</span><span class="p">:</span> <span class="k">return</span> <span class="s">"HEAD"</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>As you can see in the example above, we define the <em>HTTPMethod</em> enum that describes various HTTP methods. We use cases with associated types to hold the data correlated with the HTTP method. For example, the GET method contains URL query items, POST and PUT methods have the data we use as the HTTP body.</p>
+
+<p>Now we need to make somehow <em>URLSession</em> working with our <em>Request</em> type. The easiest way is defining a calculated property on the <em>Request</em> type that converts it to the <em>URLRequest</em>.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">extension</span> <span class="kt">Request</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">urlRequest</span><span class="p">:</span> <span class="kt">URLRequest</span> <span class="p">{</span>
+        <span class="k">var</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">URLRequest</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span> <span class="n">url</span><span class="p">)</span>
+
+        <span class="k">switch</span> <span class="n">method</span> <span class="p">{</span>
+        <span class="k">case</span> <span class="o">.</span><span class="nf">post</span><span class="p">(</span><span class="k">let</span> <span class="nv">data</span><span class="p">),</span> <span class="o">.</span><span class="nf">put</span><span class="p">(</span><span class="k">let</span> <span class="nv">data</span><span class="p">):</span>
+            <span class="n">request</span><span class="o">.</span><span class="n">httpBody</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="k">case</span> <span class="kd">let</span> <span class="o">.</span><span class="nf">get</span><span class="p">(</span><span class="n">queryItems</span><span class="p">):</span>
+            <span class="k">var</span> <span class="nv">components</span> <span class="o">=</span> <span class="kt">URLComponents</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span> <span class="n">url</span><span class="p">,</span> <span class="nv">resolvingAgainstBaseURL</span><span class="p">:</span> <span class="kc">false</span><span class="p">)</span>
+            <span class="n">components</span><span class="p">?</span><span class="o">.</span><span class="n">queryItems</span> <span class="o">=</span> <span class="n">queryItems</span>
+            <span class="k">guard</span> <span class="k">let</span> <span class="nv">url</span> <span class="o">=</span> <span class="n">components</span><span class="p">?</span><span class="o">.</span><span class="n">url</span> <span class="k">else</span> <span class="p">{</span>
+                <span class="nf">preconditionFailure</span><span class="p">(</span><span class="s">"Couldn't create a url from components..."</span><span class="p">)</span>
+            <span class="p">}</span>
+            <span class="n">request</span> <span class="o">=</span> <span class="kt">URLRequest</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span> <span class="n">url</span><span class="p">)</span>
+        <span class="k">default</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="p">}</span>
+
+        <span class="n">request</span><span class="o">.</span><span class="n">allHTTPHeaderFields</span> <span class="o">=</span> <span class="n">headers</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">httpMethod</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">return</span> <span class="n">request</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Finally, we can create an extension on <em>URLSession</em> to make requests with our new type.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">extension</span> <span class="kt">URLSession</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">publisher</span><span class="p">(</span><span class="k">for</span> <span class="nv">request</span><span class="p">:</span> <span class="kt">Request</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">AnyPublisher</span><span class="o">&lt;</span><span class="kt">Data</span><span class="p">,</span> <span class="kt">Error</span><span class="o">&gt;</span> <span class="p">{</span>
+        <span class="nf">dataTaskPublisher</span><span class="p">(</span><span class="nv">for</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">urlRequest</span><span class="p">)</span>
+            <span class="o">.</span><span class="nf">map</span><span class="p">(\</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">mapError</span> <span class="p">{</span> <span class="nv">$0</span> <span class="p">}</span>
+            <span class="o">.</span><span class="nf">eraseToAnyPublisher</span><span class="p">()</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h4 id="phantom-response-type">Phantom response type</h4>
+<p>One thing we forgot to do is encoding of result type into the request. We can make it really easy by introducing phantom type. Phantom type is a generic constraint defined in any type but is not used inside. Let’s take a look at the example.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">Request</span><span class="o">&lt;</span><span class="kt">Response</span><span class="o">&gt;</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">url</span><span class="p">:</span> <span class="kt">URL</span>
+    <span class="k">let</span> <span class="nv">method</span><span class="p">:</span> <span class="kt">HttpMethod</span>
+    <span class="k">var</span> <span class="nv">headers</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">:</span> <span class="kt">String</span><span class="p">]</span> <span class="o">=</span> <span class="p">[:]</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>As you can see, we define <em>Response</em> type, but we didn’t use it anywhere in the <em>Request</em> type. That’s why it is called phantom type. Defining phantom types allows us to store information about the response in our request type. For example, it might be a type conforming to <em>Decodable</em> or even an instance of the <em>Data</em> type. Let’s update our extension on <em>URLSession</em> to support response decoding.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">extension</span> <span class="kt">URLSession</span> <span class="p">{</span>
+    <span class="kd">enum</span> <span class="kt">Error</span><span class="p">:</span> <span class="kt">Swift</span><span class="o">.</span><span class="kt">Error</span> <span class="p">{</span>
+        <span class="k">case</span> <span class="nf">networking</span><span class="p">(</span><span class="kt">URLError</span><span class="p">)</span>
+        <span class="k">case</span> <span class="nf">decoding</span><span class="p">(</span><span class="kt">Swift</span><span class="o">.</span><span class="kt">Error</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">publisher</span><span class="p">(</span>
+        <span class="k">for</span> <span class="nv">request</span><span class="p">:</span> <span class="kt">Request</span><span class="o">&lt;</span><span class="kt">Data</span><span class="o">&gt;</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">AnyPublisher</span><span class="o">&lt;</span><span class="kt">Data</span><span class="p">,</span> <span class="kt">Swift</span><span class="o">.</span><span class="kt">Error</span><span class="o">&gt;</span> <span class="p">{</span>
+        <span class="nf">dataTaskPublisher</span><span class="p">(</span><span class="nv">for</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">urlRequest</span><span class="p">)</span>
+            <span class="o">.</span><span class="nf">mapError</span><span class="p">(</span><span class="kt">Error</span><span class="o">.</span><span class="n">networking</span><span class="p">)</span>
+            <span class="o">.</span><span class="nf">map</span><span class="p">(\</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+            <span class="o">.</span><span class="nf">eraseToAnyPublisher</span><span class="p">()</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">publisher</span><span class="p">(</span>
+        <span class="k">for</span> <span class="nv">resource</span><span class="p">:</span> <span class="kt">Resource</span><span class="o">&lt;</span><span class="kt">URLResponse</span><span class="o">&gt;</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">AnyPublisher</span><span class="o">&lt;</span><span class="kt">URLResponse</span><span class="p">,</span> <span class="kt">Swift</span><span class="o">.</span><span class="kt">Error</span><span class="o">&gt;</span> <span class="p">{</span>
+        <span class="nf">dataTaskPublisher</span><span class="p">(</span><span class="nv">for</span><span class="p">:</span> <span class="n">resource</span><span class="o">.</span><span class="n">urlRequest</span><span class="p">)</span>
+            <span class="o">.</span><span class="nf">mapError</span><span class="p">(</span><span class="kt">Error</span><span class="o">.</span><span class="n">networking</span><span class="p">)</span>
+            <span class="o">.</span><span class="nf">map</span><span class="p">(\</span><span class="o">.</span><span class="n">response</span><span class="p">)</span>
+            <span class="o">.</span><span class="nf">eraseToAnyPublisher</span><span class="p">()</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="n">publisher</span><span class="o">&lt;</span><span class="kt">Value</span><span class="p">:</span> <span class="kt">Decodable</span><span class="o">&gt;</span><span class="p">(</span>
+        <span class="k">for</span> <span class="nv">request</span><span class="p">:</span> <span class="kt">Request</span><span class="o">&lt;</span><span class="kt">Value</span><span class="o">&gt;</span><span class="p">,</span>
+        <span class="n">using</span> <span class="nv">decoder</span><span class="p">:</span> <span class="kt">JSONDecoder</span> <span class="o">=</span> <span class="o">.</span><span class="nf">init</span><span class="p">()</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">AnyPublisher</span><span class="o">&lt;</span><span class="kt">Value</span><span class="p">,</span> <span class="kt">Swift</span><span class="o">.</span><span class="kt">Error</span><span class="o">&gt;</span> <span class="p">{</span>
+        <span class="nf">dataTaskPublisher</span><span class="p">(</span><span class="nv">for</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">urlRequest</span><span class="p">)</span>
+            <span class="o">.</span><span class="nf">mapError</span><span class="p">(</span><span class="kt">Error</span><span class="o">.</span><span class="n">networking</span><span class="p">)</span>
+            <span class="o">.</span><span class="nf">map</span><span class="p">(\</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+            <span class="o">.</span><span class="nf">decode</span><span class="p">(</span><span class="nv">type</span><span class="p">:</span> <span class="kt">Value</span><span class="o">.</span><span class="k">self</span><span class="p">,</span> <span class="nv">decoder</span><span class="p">:</span> <span class="n">decoder</span><span class="p">)</span>
+            <span class="o">.</span><span class="nf">mapError</span><span class="p">(</span><span class="kt">Error</span><span class="o">.</span><span class="n">decoding</span><span class="p">)</span>
+            <span class="o">.</span><span class="nf">eraseToAnyPublisher</span><span class="p">()</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>In the example above, we also introduced proper error management to handle errors more gracefully. Let’s define a Github repo search request using the new API.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">extension</span> <span class="kt">Request</span> <span class="k">where</span> <span class="kt">Response</span> <span class="o">==</span> <span class="kt">SearchResponse</span> <span class="p">{</span>
+    <span class="kd">static</span> <span class="kd">func</span> <span class="nf">search</span><span class="p">(</span><span class="n">matching</span> <span class="nv">query</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="k">Self</span> <span class="p">{</span>
+        <span class="kt">Request</span><span class="p">(</span>
+            <span class="nv">url</span><span class="p">:</span> <span class="kt">URL</span><span class="p">(</span><span class="nv">string</span><span class="p">:</span> <span class="s">"https://api.github.com/search/repositories"</span><span class="p">)</span><span class="o">!</span><span class="p">,</span>
+            <span class="nv">method</span><span class="p">:</span> <span class="o">.</span><span class="nf">get</span><span class="p">(</span>
+                <span class="p">[</span><span class="o">.</span><span class="nf">init</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="s">"q"</span><span class="p">,</span> <span class="nv">value</span><span class="p">:</span> <span class="n">query</span><span class="p">)]</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">let</span> <span class="nv">request</span><span class="p">:</span> <span class="kt">Request</span><span class="o">&lt;</span><span class="kt">SearchResponse</span><span class="o">&gt;</span> <span class="o">=</span> <span class="o">.</span><span class="nf">search</span><span class="p">(</span><span class="nv">matching</span><span class="p">:</span> <span class="s">"Swift"</span><span class="p">)</span>
+<span class="k">let</span> <span class="nv">cancellable</span> <span class="o">=</span> <span class="kt">URLSession</span><span class="o">.</span><span class="n">shared</span><span class="o">.</span><span class="nf">publisher</span><span class="p">(</span><span class="nv">for</span><span class="p">:</span> <span class="n">request</span><span class="p">)</span>
+    <span class="o">.</span><span class="nf">map</span><span class="p">(\</span><span class="o">.</span><span class="n">items</span><span class="p">)</span>
+    <span class="o">.</span><span class="nf">replaceError</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="p">[])</span>
+    <span class="o">.</span><span class="n">sink</span> <span class="p">{</span> <span class="nf">print</span><span class="p">(</span><span class="nv">$0</span><span class="p">)</span> <span class="p">}</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p>To learn more about the benefits of using phantom types, look at my <a href="/2021/02/18/phantom-types-in-swift/">“Phantom types in Swift”</a> post.</p>
+</blockquote>
+
+<h4 id="conclusion">Conclusion</h4>
+<p>Today we built a type-safe networking layer using Swift features like enums, phantom types, and extensions. This toolbox allows you to transform any old API into a safe and modern API. I hope you enjoy the post. Feel free to follow me on <a href="https://twitter.com/mecid">Twitter</a> and ask your questions related to this article. Thanks for reading, and see you next week!</p>
+
+</article>
+
+
+<aside class="related">
+  <h4>Recent posts</h4>
+  <ul class="related-posts">
+    
+      <li>
+        <a title="Custom accessibility content in SwiftUI" href="/2021/10/06/custom-accessibility-content-in-swiftui/">
+          Custom accessibility content in SwiftUI
+          <small><time datetime="2021-10-06T00:00:00+08:00">06 Oct 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Audio graphs in SwiftUI" href="/2021/09/29/audio-graphs-in-swiftui/">
+          Audio graphs in SwiftUI
+          <small><time datetime="2021-09-29T00:00:00+08:00">29 Sep 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Accessibility focus in SwiftUI" href="/2021/09/23/accessibility-focus-in-swiftui/">
+          Accessibility focus in SwiftUI
+          <small><time datetime="2021-09-23T00:00:00+08:00">23 Sep 2021</time></small>
+        </a>
+      </li>
+    
+  </ul>
+</aside>
+
+
+      </main>
+
+      <footer class="footer">
+          <img class="avatar" alt="mecid" width="100" height="100" data-proofer-ignore="true" src="https://avatars2.githubusercontent.com/mecid?v=3&s=100" srcset="https://avatars2.githubusercontent.com/mecid?v=3&s=100 1x, https://avatars2.githubusercontent.com/mecid?v=3&s=200 2x, https://avatars2.githubusercontent.com/mecid?v=3&s=300 3x, https://avatars2.githubusercontent.com/mecid?v=3&s=400 4x" />
+          <small>Hi there! I am code4you,I like to program, and do some App.</small>
+          <small>I'm a developer</small>
+          <small>Feel free to follow me on <a href="https://github.com/code4you2021">Github</a>.</small>
+        <small>
+          &copy; <time datetime="2021-10-17T11:25:11+08:00">2021</time>. All rights reserved.
+        </small>
+      </footer>
+    </div>
+
+    
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1WQVZK1CR7"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-18491817-18');
+    </script>
+    
+  </body>
+</html>

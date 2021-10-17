@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" content="swift ios development apple watch iphone ipad swiftui macos uikit dev wwdc tutorial guide redux tea state container" />
+
+  <!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Frames in SwiftUI | Code4You</title>
+<meta name="generator" content="Jekyll v3.9.0" />
+<meta property="og:title" content="Frames in SwiftUI" />
+<meta name="author" content="Code4You" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="SwiftUI provides us a magical frame modifier that you might think is very simple and straightforward to use. But there is a lot of complicated logic under the hood. This week we will talk about fixed and flexible frames and the frame modifier to control them." />
+<meta property="og:description" content="SwiftUI provides us a magical frame modifier that you might think is very simple and straightforward to use. But there is a lot of complicated logic under the hood. This week we will talk about fixed and flexible frames and the frame modifier to control them." />
+<link rel="canonical" href="http://localhost:4000/2021/06/02/frames-in-swiftui/" />
+<meta property="og:url" content="http://localhost:4000/2021/06/02/frames-in-swiftui/" />
+<meta property="og:site_name" content="Code4You" />
+<meta property="og:image" content="http://localhost:4000/public/fixed-frame1.png" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2021-06-02T00:00:00+08:00" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta property="twitter:image" content="http://localhost:4000/public/fixed-frame1.png" />
+<meta property="twitter:title" content="Frames in SwiftUI" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2021/06/02/frames-in-swiftui/"},"url":"http://localhost:4000/2021/06/02/frames-in-swiftui/","image":"http://localhost:4000/public/fixed-frame1.png","author":{"@type":"Person","name":"Code4You"},"headline":"Frames in SwiftUI","description":"SwiftUI provides us a magical frame modifier that you might think is very simple and straightforward to use. But there is a lot of complicated logic under the hood. This week we will talk about fixed and flexible frames and the frame modifier to control them.","dateModified":"2021-06-02T00:00:00+08:00","datePublished":"2021-06-02T00:00:00+08:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+  <link rel="alternate" type="application/atom+xml" title="Code4You" href="/feed.xml">
+</head>
+
+
+  <body>
+
+    <div class="container content">
+      <header class="masthead">
+        <nav>
+          <h1 class="masthead-title">
+            <a href="/" title="Home">Code4You</a>
+          </h1>
+          <div>
+            <a href="/categories" title="Categories">Categories</a>
+            <a href="/archive" title="Archive">Archive</a>
+            <a href="/feed.xml" title="Feed">Feed</a>
+          </div>
+        </nav>
+      </header>
+
+      <main>
+        <article class="post">
+  <h2 class="post-title">Frames in SwiftUI</h2>
+  <time datetime="2021-06-02T00:00:00+08:00" class="post-date">02 Jun 2021</time>
+  <p>SwiftUI provides us a magical frame modifier that you might think is very simple and straightforward to use. But there is a lot of complicated logic under the hood. This week we will talk about fixed and flexible frames and the frame modifier to control them.</p>
+
+<!-- <div class="ads">
+    <span>
+        Why don’t more iOS apps use voice? Machine learning for voice is hard, and using Siri is clunky and rigid. So we open-sourced an iOS library (also Android, Node, Python, & React Native), and built a no-code web tool to make custom wake words, speech recognizers, and AI voices—for all devs! <a href="https://www.spokestack.io/?utm_source=swiftui_weekly&utm_medium=email&utm_campaign=maker_launch_PAID">Try it for free.</a>
+    </span>
+</div> -->
+
+<h4 id="fixed-frame">Fixed frame</h4>
+<p>Let’s start with the straightforward type of frame called a fixed frame. The fixed frame is a way to create an invisible frame around the view that will propose the size you mention to the view. It doesn’t mean that the frame will set the size of the view inside. The frame only suggests the size, and the view can completely ignore it. Let’s take a look two different examples.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">PlaygroundPage</span><span class="o">.</span><span class="n">current</span><span class="o">.</span><span class="nf">setLiveView</span><span class="p">(</span>
+    <span class="kt">Text</span><span class="p">(</span><span class="s">"Happy WWDC 21!"</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">foregroundColor</span><span class="p">(</span><span class="kt">Color</span><span class="o">.</span><span class="n">white</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">frame</span><span class="p">(</span><span class="nv">width</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span> <span class="nv">height</span><span class="p">:</span> <span class="mi">50</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">border</span><span class="p">(</span><span class="kt">Color</span><span class="o">.</span><span class="n">red</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">frame</span><span class="p">(</span><span class="nv">width</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span> <span class="nv">height</span><span class="p">:</span> <span class="mi">300</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">background</span><span class="p">(</span><span class="kt">Color</span><span class="o">.</span><span class="n">black</span><span class="p">)</span>
+<span class="p">)</span>
+</code></pre></div></div>
+
+<p><img src="/public/fixed-frame2.png" alt="fixed-frame" /></p>
+
+<p>As you can see in the example above, we have a <em>Text</em> view that shrinks its content to fit the size proposed by the frame.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">PlaygroundPage</span><span class="o">.</span><span class="n">current</span><span class="o">.</span><span class="nf">setLiveView</span><span class="p">(</span>
+    <span class="kt">Rectangle</span><span class="p">()</span>
+        <span class="o">.</span><span class="nf">fill</span><span class="p">(</span><span class="kt">Color</span><span class="o">.</span><span class="n">green</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">frame</span><span class="p">(</span><span class="nv">width</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span> <span class="nv">height</span><span class="p">:</span> <span class="mi">100</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">frame</span><span class="p">(</span><span class="nv">width</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span> <span class="nv">height</span><span class="p">:</span> <span class="mi">50</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">border</span><span class="p">(</span><span class="kt">Color</span><span class="o">.</span><span class="n">yellow</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">frame</span><span class="p">(</span><span class="nv">width</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span> <span class="nv">height</span><span class="p">:</span> <span class="mi">300</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">background</span><span class="p">(</span><span class="kt">Color</span><span class="o">.</span><span class="n">black</span><span class="p">)</span>
+<span class="p">)</span>
+</code></pre></div></div>
+
+<p><img src="/public/fixed-frame1.png" alt="fixed-frame" /></p>
+
+<p>In the second example, we use a green rectangle with the size of 100x100. We also add a small fixed frame around the rectangle, but in this case, the green rectangle ignores the size proposed by the frame and draws itself outside of the frame.</p>
+
+<blockquote>
+  <p>To learn more about layout process in SwiftUI, take a look at my <a href="/2020/04/15/layout-priorities-in-swiftui/">“Layout priorities in SwiftUI”</a> post.</p>
+</blockquote>
+
+<h4 id="flexible-frame">Flexible frame</h4>
+<p>There is another version of the frame modifier that accepts seven parameters.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">func</span> <span class="nf">frame</span><span class="p">(</span>
+    <span class="nv">minWidth</span><span class="p">:</span> <span class="kt">CGFloat</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
+    <span class="nv">idealWidth</span><span class="p">:</span> <span class="kt">CGFloat</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
+    <span class="nv">maxWidth</span><span class="p">:</span> <span class="kt">CGFloat</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
+    <span class="nv">minHeight</span><span class="p">:</span> <span class="kt">CGFloat</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
+    <span class="nv">idealHeight</span><span class="p">:</span> <span class="kt">CGFloat</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
+    <span class="nv">maxHeight</span><span class="p">:</span> <span class="kt">CGFloat</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
+    <span class="nv">alignment</span><span class="p">:</span> <span class="kt">Alignment</span> <span class="o">=</span> <span class="o">.</span><span class="n">center</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{}</span>
+</code></pre></div></div>
+
+<p>Let’s focus on the horizontal axis because the same applies to the vertical. We will talk about ideal width and height in the next section because it doesn’t affect flexible frames. As you can see, there are optional parameters for minimal and maximal width. You have three options here:</p>
+<ol>
+  <li>You provide both minimal and maximal value.</li>
+  <li>You provide only minimal value.</li>
+  <li>You provide only maximal value.</li>
+</ol>
+
+<p>Let’s start with the first one when you provide both minimal and maximal value. In this case, SwiftUI completely ignores the size of the child inside the frame and clamps the final size of the frame between minimal and maximal value.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">PlaygroundPage</span><span class="o">.</span><span class="n">current</span><span class="o">.</span><span class="nf">setLiveView</span><span class="p">(</span>
+    <span class="kt">Text</span><span class="p">(</span><span class="s">"Happy WWDC 21!"</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">foregroundColor</span><span class="p">(</span><span class="kt">Color</span><span class="o">.</span><span class="n">white</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">border</span><span class="p">(</span><span class="kt">Color</span><span class="o">.</span><span class="n">green</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">frame</span><span class="p">(</span><span class="nv">minWidth</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span> <span class="nv">maxWidth</span><span class="p">:</span> <span class="mi">50</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">border</span><span class="p">(</span><span class="kt">Color</span><span class="o">.</span><span class="n">red</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">frame</span><span class="p">(</span><span class="nv">width</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span> <span class="nv">height</span><span class="p">:</span> <span class="mi">300</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">background</span><span class="p">(</span><span class="kt">Color</span><span class="o">.</span><span class="n">black</span><span class="p">)</span>
+<span class="p">)</span>
+</code></pre></div></div>
+
+<p><img src="/public/flexible-frame1.png" alt="flexible-frame" /></p>
+
+<p>In the second case, we have only minimal value provided, which leads to the situation where SwiftUI checks the content size of a child view inside a frame and makes a decision based on this value. The final size of the frame will be the minimum value that you pass if the content size of the child view is smaller than the value you provide. Otherwise, it will be equal to the content size of the child view.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">PlaygroundPage</span><span class="o">.</span><span class="n">current</span><span class="o">.</span><span class="nf">setLiveView</span><span class="p">(</span>
+    <span class="kt">Text</span><span class="p">(</span><span class="s">"Happy WWDC 21!"</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">foregroundColor</span><span class="p">(</span><span class="kt">Color</span><span class="o">.</span><span class="n">white</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">border</span><span class="p">(</span><span class="kt">Color</span><span class="o">.</span><span class="n">green</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">frame</span><span class="p">(</span><span class="nv">minWidth</span><span class="p">:</span> <span class="mi">20</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">border</span><span class="p">(</span><span class="kt">Color</span><span class="o">.</span><span class="n">red</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">frame</span><span class="p">(</span><span class="nv">width</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span> <span class="nv">height</span><span class="p">:</span> <span class="mi">300</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">background</span><span class="p">(</span><span class="kt">Color</span><span class="o">.</span><span class="n">black</span><span class="p">)</span>
+<span class="p">)</span>
+</code></pre></div></div>
+
+<p><img src="/public/flexible-frame2.png" alt="flexible-frame" /></p>
+
+<p>In the third case, we have only maximal value provided, and it leads to the condition where SwiftUI checks the content size of a child view inside a frame. It sets the final size of the frame to the maximal value whenever the content size bigger than the size you pass. Otherwise, it will be equal to the content size of the child view.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">PlaygroundPage</span><span class="o">.</span><span class="n">current</span><span class="o">.</span><span class="nf">setLiveView</span><span class="p">(</span>
+    <span class="kt">Text</span><span class="p">(</span><span class="s">"Happy WWDC 21!"</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">foregroundColor</span><span class="p">(</span><span class="kt">Color</span><span class="o">.</span><span class="n">white</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">border</span><span class="p">(</span><span class="kt">Color</span><span class="o">.</span><span class="n">green</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">frame</span><span class="p">(</span><span class="nv">maxWidth</span><span class="p">:</span> <span class="mi">40</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">border</span><span class="p">(</span><span class="kt">Color</span><span class="o">.</span><span class="n">red</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">frame</span><span class="p">(</span><span class="nv">width</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span> <span class="nv">height</span><span class="p">:</span> <span class="mi">300</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">background</span><span class="p">(</span><span class="kt">Color</span><span class="o">.</span><span class="n">black</span><span class="p">)</span>
+<span class="p">)</span>
+</code></pre></div></div>
+
+<p><img src="/public/flexible-frame3.png" alt="flexible-frame" /></p>
+
+<h4 id="ideal-size">Ideal size</h4>
+<p>Ideal width and heigh parameters allow us to provide an intrinsic size. Intrinsic size is usually the size of the content. In the case of the <em>Text</em> view, it is the size of the string presented in the view. In the case of a shape like a <em>Rectangle</em> or <em>Circle</em>, the ideal size is undefined, and the view tries to fill the available space. The frame modifier allows you to provide the ideal size for the views that don’t have content. SwiftUI uses ideal size only in conjunction with the <em>fixedSize</em> modifier.</p>
+
+<blockquote>
+  <p>To learn more about the fixedSize modifier, take a look at my <a href="/2020/04/29/the-magic-of-fixed-size-modifier-in-swiftui/">“The magic of fixed size modifier in SwiftUI”</a> post.</p>
+</blockquote>
+
+<h4 id="conclusion">Conclusion</h4>
+<p>The most challenging topic in SwiftUI for me was frame behavior. Fixed-size, flexible frames, ideal size, so many options for a single frame modifier. I hope you enjoy the post. Feel free to follow me on <a href="https://twitter.com/mecid">Twitter</a> and ask your questions related to this post. Thanks for reading, and see you next week!</p>
+
+</article>
+
+
+<aside class="related">
+  <h4>Recent posts</h4>
+  <ul class="related-posts">
+    
+      <li>
+        <a title="Custom accessibility content in SwiftUI" href="/2021/10/06/custom-accessibility-content-in-swiftui/">
+          Custom accessibility content in SwiftUI
+          <small><time datetime="2021-10-06T00:00:00+08:00">06 Oct 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Audio graphs in SwiftUI" href="/2021/09/29/audio-graphs-in-swiftui/">
+          Audio graphs in SwiftUI
+          <small><time datetime="2021-09-29T00:00:00+08:00">29 Sep 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Accessibility focus in SwiftUI" href="/2021/09/23/accessibility-focus-in-swiftui/">
+          Accessibility focus in SwiftUI
+          <small><time datetime="2021-09-23T00:00:00+08:00">23 Sep 2021</time></small>
+        </a>
+      </li>
+    
+  </ul>
+</aside>
+
+
+      </main>
+
+      <footer class="footer">
+          <img class="avatar" alt="mecid" width="100" height="100" data-proofer-ignore="true" src="https://avatars2.githubusercontent.com/mecid?v=3&s=100" srcset="https://avatars2.githubusercontent.com/mecid?v=3&s=100 1x, https://avatars2.githubusercontent.com/mecid?v=3&s=200 2x, https://avatars2.githubusercontent.com/mecid?v=3&s=300 3x, https://avatars2.githubusercontent.com/mecid?v=3&s=400 4x" />
+          <small>Hi there! I am code4you,I like to program, and do some App.</small>
+          <small>I'm a developer</small>
+          <small>Feel free to follow me on <a href="https://github.com/code4you2021">Github</a>.</small>
+        <small>
+          &copy; <time datetime="2021-10-17T11:25:11+08:00">2021</time>. All rights reserved.
+        </small>
+      </footer>
+    </div>
+
+    
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1WQVZK1CR7"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-18491817-18');
+    </script>
+    
+  </body>
+</html>

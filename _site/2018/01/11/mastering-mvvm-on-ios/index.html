@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" content="swift ios development apple watch iphone ipad swiftui macos uikit dev wwdc tutorial guide redux tea state container" />
+
+  <!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Mastering MVVM on iOS | Code4You</title>
+<meta name="generator" content="Jekyll v3.9.0" />
+<meta property="og:title" content="Mastering MVVM on iOS" />
+<meta name="author" content="Code4You" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="There are a plenty of posts on the internet about app architectures in the iOS development world. Today I will show some tips for using MVVM architecture while developing iOS apps. I am not going to show other architectures if you need them there is a great post. The main problem of Apple MVC is mixed responsibility, which leads to the appearance of some kinds of problems such as Massive-View-Controller." />
+<meta property="og:description" content="There are a plenty of posts on the internet about app architectures in the iOS development world. Today I will show some tips for using MVVM architecture while developing iOS apps. I am not going to show other architectures if you need them there is a great post. The main problem of Apple MVC is mixed responsibility, which leads to the appearance of some kinds of problems such as Massive-View-Controller." />
+<link rel="canonical" href="http://localhost:4000/2018/01/11/mastering-mvvm-on-ios/" />
+<meta property="og:url" content="http://localhost:4000/2018/01/11/mastering-mvvm-on-ios/" />
+<meta property="og:site_name" content="Code4You" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2018-01-11T00:00:00+08:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Mastering MVVM on iOS" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2018/01/11/mastering-mvvm-on-ios/"},"url":"http://localhost:4000/2018/01/11/mastering-mvvm-on-ios/","author":{"@type":"Person","name":"Code4You"},"headline":"Mastering MVVM on iOS","description":"There are a plenty of posts on the internet about app architectures in the iOS development world. Today I will show some tips for using MVVM architecture while developing iOS apps. I am not going to show other architectures if you need them there is a great post. The main problem of Apple MVC is mixed responsibility, which leads to the appearance of some kinds of problems such as Massive-View-Controller.","dateModified":"2018-01-11T00:00:00+08:00","datePublished":"2018-01-11T00:00:00+08:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+  <link rel="alternate" type="application/atom+xml" title="Code4You" href="/feed.xml">
+</head>
+
+
+  <body>
+
+    <div class="container content">
+      <header class="masthead">
+        <nav>
+          <h1 class="masthead-title">
+            <a href="/" title="Home">Code4You</a>
+          </h1>
+          <div>
+            <a href="/categories" title="Categories">Categories</a>
+            <a href="/archive" title="Archive">Archive</a>
+            <a href="/feed.xml" title="Feed">Feed</a>
+          </div>
+        </nav>
+      </header>
+
+      <main>
+        <article class="post">
+  <h2 class="post-title">Mastering MVVM on iOS</h2>
+  <time datetime="2018-01-11T00:00:00+08:00" class="post-date">11 Jan 2018</time>
+  <p>There are a plenty of posts on the internet about app architectures in the iOS development world. Today I will show some tips for using MVVM architecture while developing iOS apps. I am not going to show other architectures if you need them there is a great <a href="https://medium.com/ios-os-x-development/ios-architecture-patterns-ecba4c38de52">post</a>.
+The main problem of Apple MVC is mixed responsibility, which leads to the appearance of some kinds of problems such as Massive-View-Controller.</p>
+
+<!-- <div class="ads">
+    <span>
+        Why don’t more iOS apps use voice? Machine learning for voice is hard, and using Siri is clunky and rigid. So we open-sourced an iOS library (also Android, Node, Python, & React Native), and built a no-code web tool to make custom wake words, speech recognizers, and AI voices—for all devs! <a href="https://www.spokestack.io/?utm_source=swiftui_weekly&utm_medium=email&utm_campaign=maker_launch_PAID">Try it for free.</a>
+    </span>
+</div> -->
+
+<h4 id="why-mvvm">Why MVVM?</h4>
+<p>We should accept that <em>UIViewController</em> is the main component in Apple’s iOS SDK and all the actions are started and built across this entity. Despite the name, it is more view than a classic Controller (or Presenter) from MVC(or MVP), because of callbacks like <em>viewDidLoad</em>, <em>viewWillLayoutSubviews</em>, and other view related methods. That is the reason why we should ignore the <strong>controller</strong> keyword in the name and use it as View, where the role of real controller takes the view model.</p>
+
+<p>View model is the full data representation of the view. Every view should hold only one view model instance. Generally, view model uses a manager to fetch data and transforms it into necessary format. Let’s dive into examples:</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">import</span> <span class="kt">Foundation</span>
+
+<span class="kd">class</span> <span class="kt">ItemsViewModel</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">items</span><span class="p">:</span> <span class="p">[</span><span class="kt">Item</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">var</span> <span class="nv">error</span><span class="p">:</span> <span class="kt">Error</span><span class="p">?</span>
+    <span class="k">var</span> <span class="nv">refreshing</span> <span class="o">=</span> <span class="kc">false</span>
+    
+    <span class="kd">private</span> <span class="k">let</span> <span class="nv">dataManager</span><span class="p">:</span> <span class="kt">DataManager</span>
+    <span class="nf">init</span><span class="p">(</span><span class="nv">dataManager</span><span class="p">:</span> <span class="kt">DataManager</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">self</span><span class="o">.</span><span class="n">dataManager</span> <span class="o">=</span> <span class="n">dataManager</span>
+    <span class="p">}</span>
+    
+    <span class="kd">func</span> <span class="nf">fetch</span><span class="p">(</span><span class="nv">completion</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">refreshing</span> <span class="o">=</span> <span class="kc">true</span>
+        <span class="n">dataManager</span><span class="o">.</span><span class="n">fetchItems</span> <span class="p">{</span> <span class="p">[</span><span class="k">weak</span> <span class="k">self</span><span class="p">]</span> <span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">error</span><span class="p">)</span> <span class="k">in</span>
+            <span class="k">self</span><span class="p">?</span><span class="o">.</span><span class="n">items</span> <span class="o">=</span> <span class="n">items</span> <span class="p">??</span> <span class="p">[]</span>
+            <span class="k">self</span><span class="p">?</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="n">error</span>
+            <span class="k">self</span><span class="p">?</span><span class="o">.</span><span class="n">refreshing</span> <span class="o">=</span> <span class="kc">false</span>
+            <span class="nf">completion</span><span class="p">()</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Here we have view model that fetches items via <em>DataManager</em> and holds it inside some variable. It also holds an error and refreshing state, which brings opportunity to build UI with all required conditions.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">import</span> <span class="kt">UIKit</span>
+
+<span class="kd">class</span> <span class="kt">ItemsViewController</span><span class="p">:</span> <span class="kt">UIViewController</span> <span class="p">{</span>
+    <span class="kd">@IBOutlet</span> <span class="kd">private</span> <span class="k">weak</span> <span class="k">var</span> <span class="nv">tableView</span><span class="p">:</span> <span class="kt">UITableView</span><span class="o">!</span>
+    <span class="kd">private</span> <span class="k">var</span> <span class="nv">viewModel</span><span class="p">:</span> <span class="kt">ItemsViewModel</span>
+    
+    <span class="nf">init</span><span class="p">(</span><span class="nv">viewModel</span><span class="p">:</span> <span class="kt">ItemsViewModel</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">self</span><span class="o">.</span><span class="n">viewModel</span> <span class="o">=</span> <span class="n">viewModel</span>
+        <span class="k">super</span><span class="o">.</span><span class="nf">init</span><span class="p">(</span><span class="nv">nibName</span><span class="p">:</span> <span class="kc">nil</span><span class="p">,</span> <span class="nv">bundle</span><span class="p">:</span> <span class="kc">nil</span><span class="p">)</span>
+    <span class="p">}</span>
+    
+    <span class="k">override</span> <span class="kd">func</span> <span class="nf">viewDidLoad</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">super</span><span class="o">.</span><span class="nf">viewDidLoad</span><span class="p">()</span>
+        
+        <span class="n">viewModel</span><span class="o">.</span><span class="n">fetch</span> <span class="p">{</span> <span class="p">[</span><span class="k">weak</span> <span class="k">self</span><span class="p">]</span> <span class="k">in</span>
+            <span class="k">self</span><span class="p">?</span><span class="o">.</span><span class="n">tableView</span><span class="o">.</span><span class="nf">reloadData</span><span class="p">()</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">extension</span> <span class="kt">ItemsViewController</span><span class="p">:</span> <span class="kt">UITableViewDataSource</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">tableView</span><span class="p">(</span><span class="n">_</span> <span class="nv">tableView</span><span class="p">:</span> <span class="kt">UITableView</span><span class="p">,</span> <span class="n">numberOfRowsInSection</span> <span class="nv">section</span><span class="p">:</span> <span class="kt">Int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Int</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">viewModel</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">count</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>As you can see above we have <em>ItemsViewController</em> that represents a list of items in <em>UITableView</em>. It holds view model instance and asks it to fetch data in the <em>viewDidLoad</em> callback. We are also passing closure, which reloads <em>UITableView</em> as soon as the data is fetched. <em>UITableViewDataSource</em> methods also use the view model to get the count of cells.</p>
+
+<h4 id="reactive-bindings">Reactive Bindings</h4>
+<p>Bindings between view and view model is the main idea of MVVM architecture, where developers can work on view model code and designers can work on view in Interface Designer. In the first example, we used closures, because there is no binding ability in iOS SDK out of the box. In real life applications, you can use some of popular FRP extensions, like ReactiveCocoa, RxSwift or Bond. I prefer Bond library for its simplicity.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">import</span> <span class="kt">Bond</span>
+
+<span class="kd">class</span> <span class="kt">ItemsViewModel</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">items</span> <span class="o">=</span> <span class="kt">Observable</span><span class="o">&lt;</span><span class="p">[</span><span class="kt">Item</span><span class="p">]</span><span class="o">&gt;</span><span class="p">([])</span>
+    <span class="k">let</span> <span class="nv">error</span> <span class="o">=</span> <span class="kt">Observable</span><span class="o">&lt;</span><span class="kt">Error</span><span class="p">?</span><span class="o">&gt;</span><span class="p">(</span><span class="kc">nil</span><span class="p">)</span>
+    <span class="k">let</span> <span class="nv">refreshing</span> <span class="o">=</span> <span class="kt">Observable</span><span class="o">&lt;</span><span class="kt">Bool</span><span class="o">&gt;</span><span class="p">(</span><span class="kc">false</span><span class="p">)</span>
+    
+    <span class="kd">private</span> <span class="k">let</span> <span class="nv">dataManager</span><span class="p">:</span> <span class="kt">DataManager</span>
+    <span class="nf">init</span><span class="p">(</span><span class="nv">dataManager</span><span class="p">:</span> <span class="kt">DataManager</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">self</span><span class="o">.</span><span class="n">dataManager</span> <span class="o">=</span> <span class="n">dataManager</span>
+    <span class="p">}</span>
+    
+    <span class="kd">func</span> <span class="nf">fetch</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">refreshing</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="kc">false</span>
+        <span class="n">dataManager</span><span class="o">.</span><span class="n">fetchItems</span> <span class="p">{</span> <span class="p">[</span><span class="k">weak</span> <span class="k">self</span><span class="p">]</span> <span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">error</span><span class="p">)</span> <span class="k">in</span>
+            <span class="k">self</span><span class="p">?</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">items</span> <span class="p">??</span> <span class="p">[]</span>
+            <span class="k">self</span><span class="p">?</span><span class="o">.</span><span class="n">error</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">error</span>
+            <span class="k">self</span><span class="p">?</span><span class="o">.</span><span class="n">refreshing</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="kc">false</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>This is the same <em>ItemsViewModel</em>, but now we use reactive programming to observe changes.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="kt">ItemsViewController</span><span class="p">:</span> <span class="kt">UIViewController</span> <span class="p">{</span>
+    <span class="kd">@IBOutlet</span> <span class="kd">private</span> <span class="k">weak</span> <span class="k">var</span> <span class="nv">tableView</span><span class="p">:</span> <span class="kt">UITableView</span><span class="o">!</span>
+    <span class="kd">private</span> <span class="k">let</span> <span class="nv">activityIndicator</span> <span class="o">=</span> <span class="kt">ActivityIndicatorView</span><span class="p">()</span>
+    <span class="kd">private</span> <span class="k">var</span> <span class="nv">viewModel</span><span class="p">:</span> <span class="kt">ItemsViewModel</span>
+    
+    <span class="nf">init</span><span class="p">(</span><span class="nv">viewModel</span><span class="p">:</span> <span class="kt">ItemsViewModel</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">self</span><span class="o">.</span><span class="n">viewModel</span> <span class="o">=</span> <span class="n">viewModel</span>
+        <span class="k">super</span><span class="o">.</span><span class="nf">init</span><span class="p">(</span><span class="nv">nibName</span><span class="p">:</span> <span class="kc">nil</span><span class="p">,</span> <span class="nv">bundle</span><span class="p">:</span> <span class="kc">nil</span><span class="p">)</span>
+    <span class="p">}</span>
+    
+    <span class="k">override</span> <span class="kd">func</span> <span class="nf">viewDidLoad</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">super</span><span class="o">.</span><span class="nf">viewDidLoad</span><span class="p">()</span>
+        <span class="nf">setupUI</span><span class="p">()</span>
+        <span class="nf">bindViewModel</span><span class="p">()</span>
+        <span class="n">viewModel</span><span class="o">.</span><span class="nf">fetch</span><span class="p">()</span>
+    <span class="p">}</span>
+    
+    <span class="kd">func</span> <span class="nf">bindViewModel</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">viewModel</span><span class="o">.</span><span class="n">refreshing</span><span class="o">.</span><span class="nf">bind</span><span class="p">(</span><span class="nv">to</span><span class="p">:</span> <span class="n">activityIndicator</span><span class="o">.</span><span class="n">reactive</span><span class="o">.</span><span class="n">isAnimating</span><span class="p">)</span>
+        <span class="n">viewModel</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="nf">bind</span><span class="p">(</span><span class="nv">to</span><span class="p">:</span> <span class="k">self</span><span class="p">)</span> <span class="p">{</span> <span class="n">strongSelf</span><span class="p">,</span> <span class="n">_</span> <span class="k">in</span>
+            <span class="n">strongSelf</span><span class="o">.</span><span class="n">tableView</span><span class="o">.</span><span class="nf">reloadData</span><span class="p">()</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    
+    <span class="kd">func</span> <span class="nf">setupUI</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">view</span><span class="o">.</span><span class="nf">addSubview</span><span class="p">(</span><span class="n">activityIndicator</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">extension</span> <span class="kt">ItemsViewController</span><span class="p">:</span> <span class="kt">UITableViewDataSource</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">tableView</span><span class="p">(</span><span class="n">_</span> <span class="nv">tableView</span><span class="p">:</span> <span class="kt">UITableView</span><span class="p">,</span> <span class="n">numberOfRowsInSection</span> <span class="nv">section</span><span class="p">:</span> <span class="kt">Int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Int</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">viewModel</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">count</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Let’s look at <em>bindViewModel</em> method, here we bind view model to view. Whenever refreshing value changes it sets activityIndicator’s <em>isAnimating</em> property. Or when items are changed, <em>UITableView</em> reloads. As you can see, reactive bindings simplify code in most cases.</p>
+
+<h4 id="viewmodel-composition">ViewModel Composition</h4>
+<p>Sometimes we have complex views with multiple data sources. For example, Instagram user profile where we have some information about the user and all photos related to this user. Good job here is separating this logic into two or more view models. But we have a rule: every view should have only one view model. In this case, the best option is using view model composition. Let’s look at examples:</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">import</span> <span class="kt">Bond</span>
+<span class="kd">import</span> <span class="kt">ReactiveKit</span>
+
+<span class="kd">class</span> <span class="kt">UserProfileViewModel</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">refreshing</span> <span class="o">=</span> <span class="kt">Observable</span><span class="o">&lt;</span><span class="kt">Bool</span><span class="o">&gt;</span><span class="p">(</span><span class="kc">false</span><span class="p">)</span>
+    <span class="k">let</span> <span class="nv">username</span> <span class="o">=</span> <span class="kt">Observable</span><span class="o">&lt;</span><span class="kt">String</span><span class="o">&gt;</span><span class="p">(</span><span class="s">""</span><span class="p">)</span>
+    <span class="k">let</span> <span class="nv">photos</span> <span class="o">=</span> <span class="kt">Observable</span><span class="o">&lt;</span><span class="p">[</span><span class="kt">Photos</span><span class="p">]</span><span class="o">&gt;</span><span class="p">([])</span>
+    
+    <span class="kd">private</span> <span class="k">let</span> <span class="nv">userViewModel</span><span class="p">:</span> <span class="kt">UserViewModel</span>
+    <span class="kd">private</span> <span class="k">let</span> <span class="nv">photosViewModel</span><span class="p">:</span> <span class="kt">PhotosViewModel</span>
+    
+    <span class="nf">init</span><span class="p">(</span><span class="nv">userManager</span><span class="p">:</span> <span class="kt">UserManager</span><span class="p">,</span> <span class="nv">photoManager</span><span class="p">:</span> <span class="kt">PhotoManager</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">userViewModel</span> <span class="o">=</span> <span class="kt">UserViewModel</span><span class="p">(</span><span class="nv">manager</span><span class="p">:</span> <span class="n">userManager</span><span class="p">)</span>
+        <span class="n">photosViewModel</span> <span class="o">=</span> <span class="kt">PhotosViewModel</span><span class="p">(</span><span class="nv">manager</span><span class="p">:</span> <span class="n">photoManager</span><span class="p">)</span>
+        
+        <span class="n">userViewModel</span><span class="o">.</span><span class="n">username</span><span class="o">.</span><span class="nf">bind</span><span class="p">(</span><span class="nv">to</span><span class="p">:</span> <span class="n">username</span><span class="p">)</span>
+        <span class="n">photosViewModel</span><span class="o">.</span><span class="n">photos</span><span class="o">.</span><span class="nf">bind</span><span class="p">(</span><span class="nv">to</span><span class="p">:</span> <span class="n">photos</span><span class="p">)</span>
+        <span class="nf">combineLatest</span><span class="p">(</span><span class="n">userViewModel</span><span class="o">.</span><span class="n">refreshing</span><span class="p">,</span> <span class="n">photosViewModel</span><span class="o">.</span><span class="n">refreshing</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">map</span> <span class="p">{</span> <span class="nv">$0</span> <span class="o">||</span> <span class="nv">$1</span> <span class="p">}</span>
+            <span class="o">.</span><span class="nf">bind</span><span class="p">(</span><span class="nv">to</span><span class="p">:</span> <span class="n">refreshing</span><span class="p">)</span>
+    <span class="p">}</span>
+    
+    <span class="kd">func</span> <span class="nf">fetch</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">userViewModel</span><span class="o">.</span><span class="nf">fetch</span><span class="p">()</span>
+        <span class="n">photosViewModel</span><span class="o">.</span><span class="nf">fetch</span><span class="p">()</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">class</span> <span class="kt">UserViewModel</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">refreshing</span> <span class="o">=</span> <span class="kt">Observable</span><span class="o">&lt;</span><span class="kt">Bool</span><span class="o">&gt;</span><span class="p">(</span><span class="kc">false</span><span class="p">)</span>
+    <span class="k">let</span> <span class="nv">username</span> <span class="o">=</span> <span class="kt">Observable</span><span class="o">&lt;</span><span class="kt">String</span><span class="o">&gt;</span><span class="p">(</span><span class="s">""</span><span class="p">)</span>
+    
+    <span class="kd">func</span> <span class="nf">fetch</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">refreshing</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="kc">true</span>
+        <span class="n">manager</span><span class="o">.</span><span class="nf">fetch</span><span class="p">(</span><span class="nv">user</span><span class="p">:</span> <span class="n">id</span><span class="p">)</span> <span class="p">{</span> <span class="p">[</span><span class="k">weak</span> <span class="k">self</span><span class="p">]</span> <span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">error</span><span class="p">)</span> <span class="k">in</span>
+            <span class="k">self</span><span class="p">?</span><span class="o">.</span><span class="n">username</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="s">"@"</span> <span class="o">+</span> <span class="n">user</span><span class="o">.</span><span class="n">username</span>
+            <span class="k">self</span><span class="p">?</span><span class="o">.</span><span class="n">refreshing</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="kc">false</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">class</span> <span class="kt">PhotosViewModel</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">refreshing</span> <span class="o">=</span> <span class="kt">Observable</span><span class="o">&lt;</span><span class="kt">Bool</span><span class="o">&gt;</span><span class="p">(</span><span class="kc">false</span><span class="p">)</span>
+    <span class="k">let</span> <span class="nv">photos</span> <span class="o">=</span> <span class="kt">Observable</span><span class="o">&lt;</span><span class="p">[</span><span class="kt">Photo</span><span class="p">]</span><span class="o">&gt;</span><span class="p">([])</span>
+    
+    <span class="kd">func</span> <span class="nf">fetch</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">refreshing</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="kc">true</span>
+        <span class="n">manager</span><span class="o">.</span><span class="nf">fetch</span><span class="p">(</span><span class="k">for</span> <span class="nv">user</span><span class="p">:</span> <span class="n">id</span><span class="p">)</span> <span class="p">{</span> <span class="p">[</span><span class="k">weak</span> <span class="k">self</span><span class="p">]</span> <span class="p">(</span><span class="n">photos</span><span class="p">,</span> <span class="n">error</span><span class="p">)</span> <span class="k">in</span>
+            <span class="k">self</span><span class="p">?</span><span class="o">.</span><span class="n">photos</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">photos</span> <span class="p">??</span> <span class="p">[]</span>
+            <span class="k">self</span><span class="p">?</span><span class="o">.</span><span class="n">refreshing</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="kc">false</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>As you can see, we have <em>UserProfileViewModel</em> which holds two another view models and collects data from them. We also have the refreshing state which combines two refreshing states of internal view models. The second important point on line 36, where view model formats data into the required form. View just has to bind components to view model and show data as is.</p>
+
+<h4 id="conclusion">Conclusion</h4>
+<p>View model is really nice and simple way of separating presentation logic into another entity, which helps us to avoid Massive-View-Controller and keep things easier to control and covered with Unit Tests. That is where we go, simple and testable architecture.</p>
+
+</article>
+
+
+<aside class="related">
+  <h4>Recent posts</h4>
+  <ul class="related-posts">
+    
+      <li>
+        <a title="Custom accessibility content in SwiftUI" href="/2021/10/06/custom-accessibility-content-in-swiftui/">
+          Custom accessibility content in SwiftUI
+          <small><time datetime="2021-10-06T00:00:00+08:00">06 Oct 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Audio graphs in SwiftUI" href="/2021/09/29/audio-graphs-in-swiftui/">
+          Audio graphs in SwiftUI
+          <small><time datetime="2021-09-29T00:00:00+08:00">29 Sep 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Accessibility focus in SwiftUI" href="/2021/09/23/accessibility-focus-in-swiftui/">
+          Accessibility focus in SwiftUI
+          <small><time datetime="2021-09-23T00:00:00+08:00">23 Sep 2021</time></small>
+        </a>
+      </li>
+    
+  </ul>
+</aside>
+
+
+      </main>
+
+      <footer class="footer">
+          <img class="avatar" alt="mecid" width="100" height="100" data-proofer-ignore="true" src="https://avatars2.githubusercontent.com/mecid?v=3&s=100" srcset="https://avatars2.githubusercontent.com/mecid?v=3&s=100 1x, https://avatars2.githubusercontent.com/mecid?v=3&s=200 2x, https://avatars2.githubusercontent.com/mecid?v=3&s=300 3x, https://avatars2.githubusercontent.com/mecid?v=3&s=400 4x" />
+          <small>Hi there! I am code4you,I like to program, and do some App.</small>
+          <small>I'm a developer</small>
+          <small>Feel free to follow me on <a href="https://github.com/code4you2021">Github</a>.</small>
+        <small>
+          &copy; <time datetime="2021-10-17T11:25:11+08:00">2021</time>. All rights reserved.
+        </small>
+      </footer>
+    </div>
+
+    
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1WQVZK1CR7"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-18491817-18');
+    </script>
+    
+  </body>
+</html>

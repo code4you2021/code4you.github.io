@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" content="swift ios development apple watch iphone ipad swiftui macos uikit dev wwdc tutorial guide redux tea state container" />
+
+  <!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Using protocols as composable extensions | Code4You</title>
+<meta name="generator" content="Jekyll v3.9.0" />
+<meta property="og:title" content="Using protocols as composable extensions" />
+<meta name="author" content="Code4You" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Today we will talk about using protocols as composable pieces for our view controllers. Protocols and Protocol Extensions are my second favorite Swift feature after optionals. It helps us to create highly composable and reusable codebase without inheritance. For years we were using inheritance as a gold programming standard. But is it so good? Let’s take a look for simple BaseViewController which we used to have in every project." />
+<meta property="og:description" content="Today we will talk about using protocols as composable pieces for our view controllers. Protocols and Protocol Extensions are my second favorite Swift feature after optionals. It helps us to create highly composable and reusable codebase without inheritance. For years we were using inheritance as a gold programming standard. But is it so good? Let’s take a look for simple BaseViewController which we used to have in every project." />
+<link rel="canonical" href="http://localhost:4000/2019/01/17/using-protocols-as-composable-extensions/" />
+<meta property="og:url" content="http://localhost:4000/2019/01/17/using-protocols-as-composable-extensions/" />
+<meta property="og:site_name" content="Code4You" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-01-17T00:00:00+08:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Using protocols as composable extensions" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2019/01/17/using-protocols-as-composable-extensions/"},"url":"http://localhost:4000/2019/01/17/using-protocols-as-composable-extensions/","author":{"@type":"Person","name":"Code4You"},"headline":"Using protocols as composable extensions","description":"Today we will talk about using protocols as composable pieces for our view controllers. Protocols and Protocol Extensions are my second favorite Swift feature after optionals. It helps us to create highly composable and reusable codebase without inheritance. For years we were using inheritance as a gold programming standard. But is it so good? Let’s take a look for simple BaseViewController which we used to have in every project.","dateModified":"2019-01-17T00:00:00+08:00","datePublished":"2019-01-17T00:00:00+08:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+  <link rel="alternate" type="application/atom+xml" title="Code4You" href="/feed.xml">
+</head>
+
+
+  <body>
+
+    <div class="container content">
+      <header class="masthead">
+        <nav>
+          <h1 class="masthead-title">
+            <a href="/" title="Home">Code4You</a>
+          </h1>
+          <div>
+            <a href="/categories" title="Categories">Categories</a>
+            <a href="/archive" title="Archive">Archive</a>
+            <a href="/feed.xml" title="Feed">Feed</a>
+          </div>
+        </nav>
+      </header>
+
+      <main>
+        <article class="post">
+  <h2 class="post-title">Using protocols as composable extensions</h2>
+  <time datetime="2019-01-17T00:00:00+08:00" class="post-date">17 Jan 2019</time>
+  <p>Today we will talk about using protocols as composable pieces for our view controllers. <a href="/2019/01/23/maintaining-state-in-view-controllers">Protocols and Protocol Extensions</a> are my second favorite Swift feature after optionals. It helps us to create highly composable and reusable codebase without inheritance. For years we were using inheritance as a gold programming standard. But is it so good? Let’s take a look for simple <em>BaseViewController</em> which we used to have in every project.</p>
+
+<!-- <div class="ads">
+    <span>
+        Why don’t more iOS apps use voice? Machine learning for voice is hard, and using Siri is clunky and rigid. So we open-sourced an iOS library (also Android, Node, Python, & React Native), and built a no-code web tool to make custom wake words, speech recognizers, and AI voices—for all devs! <a href="https://www.spokestack.io/?utm_source=swiftui_weekly&utm_medium=email&utm_campaign=maker_launch_PAID">Try it for free.</a>
+    </span>
+</div> -->
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">import</span> <span class="kt">UIKit</span>
+
+<span class="kd">class</span> <span class="kt">BaseViewController</span><span class="p">:</span> <span class="kt">UIViewController</span> <span class="p">{</span>
+    <span class="kd">private</span> <span class="k">let</span> <span class="nv">activityIndicator</span> <span class="o">=</span> <span class="kt">UIActivityIndicatorView</span><span class="p">(</span><span class="nv">style</span><span class="p">:</span> <span class="o">.</span><span class="n">whiteLarge</span><span class="p">)</span>
+
+    <span class="k">override</span> <span class="kd">func</span> <span class="nf">viewDidLoad</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">super</span><span class="o">.</span><span class="nf">viewDidLoad</span><span class="p">()</span>
+        <span class="n">view</span><span class="o">.</span><span class="nf">addSubview</span><span class="p">(</span><span class="n">activityIndicator</span><span class="p">)</span>
+
+        <span class="n">activityIndicator</span><span class="o">.</span><span class="n">translatesAutoresizingMaskIntoConstraints</span> <span class="o">=</span> <span class="kc">false</span>
+        <span class="kt">NSLayoutConstraint</span><span class="o">.</span><span class="nf">activate</span><span class="p">([</span>
+            <span class="n">activityIndicator</span><span class="o">.</span><span class="n">centerXAnchor</span><span class="o">.</span><span class="nf">constraint</span><span class="p">(</span><span class="nv">equalTo</span><span class="p">:</span> <span class="n">view</span><span class="o">.</span><span class="n">safeAreaLayoutGuide</span><span class="o">.</span><span class="n">centerXAnchor</span><span class="p">),</span>
+            <span class="n">activityIndicator</span><span class="o">.</span><span class="n">centerYAnchor</span><span class="o">.</span><span class="nf">constraint</span><span class="p">(</span><span class="nv">equalTo</span><span class="p">:</span> <span class="n">view</span><span class="o">.</span><span class="n">safeAreaLayoutGuide</span><span class="o">.</span><span class="n">centerYAnchor</span><span class="p">)</span>
+            <span class="p">])</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">presenActivity</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">activityIndicator</span><span class="o">.</span><span class="nf">startAnimating</span><span class="p">()</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">dismissActivity</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">activityIndicator</span><span class="o">.</span><span class="nf">stopAnimating</span><span class="p">()</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">present</span><span class="p">(</span><span class="n">_</span> <span class="nv">error</span><span class="p">:</span> <span class="kt">Error</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">let</span> <span class="nv">alert</span> <span class="o">=</span> <span class="kt">UIAlertController</span><span class="p">(</span><span class="nv">title</span><span class="p">:</span> <span class="n">error</span><span class="o">.</span><span class="n">localizedDescription</span><span class="p">,</span> <span class="nv">message</span><span class="p">:</span> <span class="kc">nil</span><span class="p">,</span> <span class="nv">preferredStyle</span><span class="p">:</span> <span class="o">.</span><span class="n">alert</span><span class="p">)</span>
+        <span class="n">alert</span><span class="o">.</span><span class="nf">addAction</span><span class="p">(</span><span class="o">.</span><span class="nf">init</span><span class="p">(</span><span class="nv">title</span><span class="p">:</span> <span class="s">"Cancel"</span><span class="p">,</span> <span class="nv">style</span><span class="p">:</span> <span class="o">.</span><span class="n">cancel</span><span class="p">))</span>
+        <span class="nf">present</span><span class="p">(</span><span class="n">alert</span><span class="p">,</span> <span class="nv">animated</span><span class="p">:</span> <span class="kc">true</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>It looks straightforward and usable because most of our view controllers need activity indicator while downloading data from the internet and error handling in case of something goes wrong during the data download. But we don’t stop with this, and we add more features to <em>BaseViewController</em> over a time. It starts bloating with a lot of general-purpose functions. Here we have at least two main problems:</p>
+
+<ol>
+  <li>Our <em>BaseViewController</em> breaks the Single Responsibility Principle by implementing all these features in one place. Over time it will turn into Massive-View-Controller, which hard to understand and cover with tests.</li>
+  <li>Every view controller in our app inherit from <em>BaseViewController</em> to use all these features. In case of a bug in <em>BaseViewController</em>, we will have this bug in all view controllers in our app even if view controller is not using buggy functionality from <em>BaseViewController</em>.</li>
+</ol>
+
+<h4 id="protocols-for-the-rescue">Protocols for the rescue.</h4>
+<p>Protocol extensions feature was released with Swift 2.0 and bring real power to protocol types which announce new paradigm of programming: Protocol Oriented Programming. I recommend you to watch the <a href="https://developer.apple.com/videos/play/wwdc2015/408/">talk</a> from WWDC about protocols and protocol extensions.</p>
+
+<p>Let’s go back to our topic. How can protocols help us? Let’s start by declaring <em>ActivityPresentable</em> protocol for presenting and dismissing an activity indicator.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">protocol</span> <span class="kt">ActivityPresentable</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">presentActivity</span><span class="p">()</span>
+    <span class="kd">func</span> <span class="nf">dismissActivity</span><span class="p">()</span>
+<span class="p">}</span>
+
+<span class="kd">extension</span> <span class="kt">ActivityPresentable</span> <span class="k">where</span> <span class="k">Self</span><span class="p">:</span> <span class="kt">UIViewController</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">presentActivity</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="k">let</span> <span class="nv">activityIndicator</span> <span class="o">=</span> <span class="nf">findActivity</span><span class="p">()</span> <span class="p">{</span>
+            <span class="n">activityIndicator</span><span class="o">.</span><span class="nf">startAnimating</span><span class="p">()</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+            <span class="k">let</span> <span class="nv">activityIndicator</span> <span class="o">=</span> <span class="kt">UIActivityIndicatorView</span><span class="p">(</span><span class="nv">style</span><span class="p">:</span> <span class="o">.</span><span class="n">whiteLarge</span><span class="p">)</span>
+            <span class="n">activityIndicator</span><span class="o">.</span><span class="nf">startAnimating</span><span class="p">()</span>
+            <span class="n">view</span><span class="o">.</span><span class="nf">addSubview</span><span class="p">(</span><span class="n">activityIndicator</span><span class="p">)</span>
+
+            <span class="n">activityIndicator</span><span class="o">.</span><span class="n">translatesAutoresizingMaskIntoConstraints</span> <span class="o">=</span> <span class="kc">false</span>
+            <span class="kt">NSLayoutConstraint</span><span class="o">.</span><span class="nf">activate</span><span class="p">([</span>
+                <span class="n">activityIndicator</span><span class="o">.</span><span class="n">centerXAnchor</span><span class="o">.</span><span class="nf">constraint</span><span class="p">(</span><span class="nv">equalTo</span><span class="p">:</span> <span class="n">view</span><span class="o">.</span><span class="n">safeAreaLayoutGuide</span><span class="o">.</span><span class="n">centerXAnchor</span><span class="p">),</span>
+                <span class="n">activityIndicator</span><span class="o">.</span><span class="n">centerYAnchor</span><span class="o">.</span><span class="nf">constraint</span><span class="p">(</span><span class="nv">equalTo</span><span class="p">:</span> <span class="n">view</span><span class="o">.</span><span class="n">safeAreaLayoutGuide</span><span class="o">.</span><span class="n">centerYAnchor</span><span class="p">)</span>
+                <span class="p">])</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">dismissActivity</span><span class="p">()</span> <span class="p">{</span>
+        <span class="nf">findActivity</span><span class="p">()?</span><span class="o">.</span><span class="nf">stopAnimating</span><span class="p">()</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">findActivity</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">UIActivityIndicatorView</span><span class="p">?</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">view</span><span class="o">.</span><span class="n">subviews</span><span class="o">.</span><span class="n">compactMap</span> <span class="p">{</span> <span class="nv">$0</span> <span class="k">as?</span> <span class="kt">UIActivityIndicatorView</span> <span class="p">}</span><span class="o">.</span><span class="n">first</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>We extracted <em>presentActivity</em> and <em>dismissActivity</em> methods into the particular protocol type. We add default implementation via protocol extension for cases where Type which adopt this protocol is view controller. It gives us the opportunity of using view controller methods and properties in our protocol extension.</p>
+
+<p>Let’s do the same for error presenting logic.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">protocol</span> <span class="kt">ErrorPresentable</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">present</span><span class="p">(</span><span class="n">_</span> <span class="nv">error</span><span class="p">:</span> <span class="kt">Error</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kd">extension</span> <span class="kt">ErrorPresentable</span> <span class="k">where</span> <span class="k">Self</span><span class="p">:</span> <span class="kt">UIViewController</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">present</span><span class="p">(</span><span class="n">_</span> <span class="nv">error</span><span class="p">:</span> <span class="kt">Error</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">let</span> <span class="nv">alert</span> <span class="o">=</span> <span class="kt">UIAlertController</span><span class="p">(</span><span class="nv">title</span><span class="p">:</span> <span class="n">error</span><span class="o">.</span><span class="n">localizedDescription</span><span class="p">,</span> <span class="nv">message</span><span class="p">:</span> <span class="kc">nil</span><span class="p">,</span> <span class="nv">preferredStyle</span><span class="p">:</span> <span class="o">.</span><span class="n">alert</span><span class="p">)</span>
+        <span class="n">alert</span><span class="o">.</span><span class="nf">addAction</span><span class="p">(</span><span class="o">.</span><span class="nf">init</span><span class="p">(</span><span class="nv">title</span><span class="p">:</span> <span class="s">"Cancel"</span><span class="p">,</span> <span class="nv">style</span><span class="p">:</span> <span class="o">.</span><span class="n">cancel</span><span class="p">))</span>
+        <span class="nf">present</span><span class="p">(</span><span class="n">alert</span><span class="p">,</span> <span class="nv">animated</span><span class="p">:</span> <span class="kc">true</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Now we have two reusable protocol types which respect the Single Responsibility Principle. We can add them as the extension to any view controller which need this functionality. The nice thing is that we are adding the only extension which needed in concrete view controller and not inherits all the stuff from the <em>BaseViewController</em>. Here is the usage example of these protocols.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="kt">ViewController</span><span class="p">:</span> <span class="kt">UIViewController</span> <span class="p">{</span>
+    <span class="k">override</span> <span class="kd">func</span> <span class="nf">viewDidLoad</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">super</span><span class="o">.</span><span class="nf">viewDidLoad</span><span class="p">()</span>
+        <span class="nf">presentActivity</span><span class="p">()</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">extension</span> <span class="kt">ViewController</span><span class="p">:</span> <span class="kt">ActivityPresentable</span><span class="p">,</span> <span class="kt">ErrorPresentable</span> <span class="p">{}</span>
+</code></pre></div></div>
+
+<p>Another opportunity here is that we can easily ignore default implementation of the protocol to implement our customized <em>ActivityIndicator</em> for some of view controllers. Let’s take a look at the example.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="kt">CustomViewController</span><span class="p">:</span> <span class="kt">UIViewController</span> <span class="p">{</span>
+    <span class="k">override</span> <span class="kd">func</span> <span class="nf">viewDidLoad</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">super</span><span class="o">.</span><span class="nf">viewDidLoad</span><span class="p">()</span>
+        <span class="nf">presentActivity</span><span class="p">()</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">extension</span> <span class="kt">CustomViewController</span><span class="p">:</span> <span class="kt">ActivityPresentable</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">presentActivity</span><span class="p">()</span> <span class="p">{</span>
+        <span class="c1">// Custom activity presenting logic</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">dismissActivity</span><span class="p">()</span> <span class="p">{</span>
+
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>While adopting <em>CustomViewController</em> to <em>ActivityPresentable</em> protocol, we specify the custom implementation of <em>presentActivity</em> and <em>dismissActivity</em> methods.</p>
+
+<h4 id="conclusion">Conclusion</h4>
+<p>As you can see, we can use protocols as simple extensions for our view controller type. In the future posts, we will continue using protocols to build reusable parts of view controller. We will touch associated type, and conditional conformance features to develop more generic data based extensions for view controllers.</p>
+
+<p>Feel free to follow me on <a href="https://twitter.com/mecid">Twitter</a> and ask your questions related to this post. Thanks for the reading and see you next week.</p>
+
+</article>
+
+
+<aside class="related">
+  <h4>Recent posts</h4>
+  <ul class="related-posts">
+    
+      <li>
+        <a title="Custom accessibility content in SwiftUI" href="/2021/10/06/custom-accessibility-content-in-swiftui/">
+          Custom accessibility content in SwiftUI
+          <small><time datetime="2021-10-06T00:00:00+08:00">06 Oct 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Audio graphs in SwiftUI" href="/2021/09/29/audio-graphs-in-swiftui/">
+          Audio graphs in SwiftUI
+          <small><time datetime="2021-09-29T00:00:00+08:00">29 Sep 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Accessibility focus in SwiftUI" href="/2021/09/23/accessibility-focus-in-swiftui/">
+          Accessibility focus in SwiftUI
+          <small><time datetime="2021-09-23T00:00:00+08:00">23 Sep 2021</time></small>
+        </a>
+      </li>
+    
+  </ul>
+</aside>
+
+
+      </main>
+
+      <footer class="footer">
+          <img class="avatar" alt="mecid" width="100" height="100" data-proofer-ignore="true" src="https://avatars2.githubusercontent.com/mecid?v=3&s=100" srcset="https://avatars2.githubusercontent.com/mecid?v=3&s=100 1x, https://avatars2.githubusercontent.com/mecid?v=3&s=200 2x, https://avatars2.githubusercontent.com/mecid?v=3&s=300 3x, https://avatars2.githubusercontent.com/mecid?v=3&s=400 4x" />
+          <small>Hi there! I am code4you,I like to program, and do some App.</small>
+          <small>I'm a developer</small>
+          <small>Feel free to follow me on <a href="https://github.com/code4you2021">Github</a>.</small>
+        <small>
+          &copy; <time datetime="2021-10-17T11:25:11+08:00">2021</time>. All rights reserved.
+        </small>
+      </footer>
+    </div>
+
+    
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1WQVZK1CR7"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-18491817-18');
+    </script>
+    
+  </body>
+</html>

@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" content="swift ios development apple watch iphone ipad swiftui macos uikit dev wwdc tutorial guide redux tea state container" />
+
+  <!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Mastering List in SwiftUI | Code4You</title>
+<meta name="generator" content="Jekyll v3.9.0" />
+<meta property="og:title" content="Mastering List in SwiftUI" />
+<meta name="author" content="Code4You" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="List is the crucial view for many apps. I can’t imagine an app that doesn’t use a list view anywhere in the view hierarchy. During WWDC21, list view became even more powerful and brought us all the needed features of UITableView. This week, we will learn how to use the list view in SwiftUI and master its features." />
+<meta property="og:description" content="List is the crucial view for many apps. I can’t imagine an app that doesn’t use a list view anywhere in the view hierarchy. During WWDC21, list view became even more powerful and brought us all the needed features of UITableView. This week, we will learn how to use the list view in SwiftUI and master its features." />
+<link rel="canonical" href="http://localhost:4000/2021/06/16/mastering-list-in-swiftui/" />
+<meta property="og:url" content="http://localhost:4000/2021/06/16/mastering-list-in-swiftui/" />
+<meta property="og:site_name" content="Code4You" />
+<meta property="og:image" content="http://localhost:4000/public/cardiobot.PNG" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2021-06-16T00:00:00+08:00" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta property="twitter:image" content="http://localhost:4000/public/cardiobot.PNG" />
+<meta property="twitter:title" content="Mastering List in SwiftUI" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2021/06/16/mastering-list-in-swiftui/"},"url":"http://localhost:4000/2021/06/16/mastering-list-in-swiftui/","image":"http://localhost:4000/public/cardiobot.PNG","author":{"@type":"Person","name":"Code4You"},"headline":"Mastering List in SwiftUI","description":"List is the crucial view for many apps. I can’t imagine an app that doesn’t use a list view anywhere in the view hierarchy. During WWDC21, list view became even more powerful and brought us all the needed features of UITableView. This week, we will learn how to use the list view in SwiftUI and master its features.","dateModified":"2021-06-16T00:00:00+08:00","datePublished":"2021-06-16T00:00:00+08:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+  <link rel="alternate" type="application/atom+xml" title="Code4You" href="/feed.xml">
+</head>
+
+
+  <body>
+
+    <div class="container content">
+      <header class="masthead">
+        <nav>
+          <h1 class="masthead-title">
+            <a href="/" title="Home">Code4You</a>
+          </h1>
+          <div>
+            <a href="/categories" title="Categories">Categories</a>
+            <a href="/archive" title="Archive">Archive</a>
+            <a href="/feed.xml" title="Feed">Feed</a>
+          </div>
+        </nav>
+      </header>
+
+      <main>
+        <article class="post">
+  <h2 class="post-title">Mastering List in SwiftUI</h2>
+  <time datetime="2021-06-16T00:00:00+08:00" class="post-date">16 Jun 2021</time>
+  <p>List is the crucial view for many apps. I can’t imagine an app that doesn’t use a list view anywhere in the view hierarchy. During WWDC21, list view became even more powerful and brought us all the needed features of <em>UITableView</em>. This week, we will learn how to use the list view in SwiftUI and master its features.</p>
+
+<!-- <div class="ads">
+    <span>
+        Why don’t more iOS apps use voice? Machine learning for voice is hard, and using Siri is clunky and rigid. So we open-sourced an iOS library (also Android, Node, Python, & React Native), and built a no-code web tool to make custom wake words, speech recognizers, and AI voices—for all devs! <a href="https://www.spokestack.io/?utm_source=swiftui_weekly&utm_medium=email&utm_campaign=maker_launch_PAID">Try it for free.</a>
+    </span>
+</div> -->
+
+<h4 id="basics">Basics</h4>
+<p>List view is straightforward but very powerful. You can use it similarly to other SwiftUI views. To create a list view in SwiftUI, you should initiate the <em>List</em> struct with a <em>ViewBuilder</em> closure that defines the content of the list.</p>
+
+<blockquote>
+  <p>To learn more about <em>ViewBuilder</em>, take a look at my dedicated <a href="/2019/12/18/the-power-of-viewbuilder-in-swiftui/">“The power of @ViewBuilder in SwiftUI”</a> post.</p>
+</blockquote>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">ContentView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">List</span> <span class="p">{</span>
+            <span class="kt">Text</span><span class="p">(</span><span class="s">"Hello"</span><span class="p">)</span>
+            <span class="kt">Text</span><span class="p">(</span><span class="s">"World"</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><img src="/public/list0.png" alt="list" /></p>
+
+<p>Usually, we use the list view to display an array of similar items. To achieve this behavior with SwiftUI, we should use another version of <em>List</em> structs’s initializer to map every item in the collection to its view representation.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">Message</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">id</span> <span class="o">=</span> <span class="kt">UUID</span><span class="p">()</span>
+    <span class="k">let</span> <span class="nv">content</span><span class="p">:</span> <span class="kt">String</span>
+<span class="p">}</span>
+
+<span class="kd">struct</span> <span class="kt">ContentView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="kd">@State</span> <span class="kd">private</span> <span class="k">var</span> <span class="nv">messages</span><span class="p">:</span> <span class="p">[</span><span class="kt">Message</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="kt">Message</span><span class="p">(</span><span class="nv">content</span><span class="p">:</span> <span class="s">"Hello"</span><span class="p">),</span>
+        <span class="kt">Message</span><span class="p">(</span><span class="nv">content</span><span class="p">:</span> <span class="s">"World"</span><span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">List</span><span class="p">(</span><span class="n">messages</span><span class="p">,</span> <span class="nv">id</span><span class="p">:</span> <span class="p">\</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> <span class="p">{</span> <span class="n">message</span> <span class="k">in</span>
+            <span class="kt">Text</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>As you can see in the example above, we construct the list by providing a messages array and the keypath defining the message’s <em>ID</em>. SwiftUI uses the <em>ID</em> to differentiate the items and animate changes like insert, remove and reorder. Remember that you should provide a keypath to the stable <em>ID</em> property. For example, it might be a stored property from your database.</p>
+
+<h4 id="sections">Sections</h4>
+<p>Sometimes we need to display the content of the list view in different sections. We can make it happen using the <em>Section</em> view in SwiftUI.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">ContentView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="kd">@State</span> <span class="kd">private</span> <span class="k">var</span> <span class="nv">incoming</span><span class="p">:</span> <span class="p">[</span><span class="kt">Message</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="kt">Message</span><span class="p">(</span><span class="nv">content</span><span class="p">:</span> <span class="s">"Incoming message 1"</span><span class="p">),</span>
+        <span class="kt">Message</span><span class="p">(</span><span class="nv">content</span><span class="p">:</span> <span class="s">"Incoming message 2"</span><span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="kd">@State</span> <span class="kd">private</span> <span class="k">var</span> <span class="nv">outgoing</span><span class="p">:</span> <span class="p">[</span><span class="kt">Message</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="kt">Message</span><span class="p">(</span><span class="nv">content</span><span class="p">:</span> <span class="s">"Outgoing message 1"</span><span class="p">),</span>
+        <span class="kt">Message</span><span class="p">(</span><span class="nv">content</span><span class="p">:</span> <span class="s">"Outgoing message 2"</span><span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">List</span> <span class="p">{</span>
+            <span class="kt">Section</span><span class="p">(</span><span class="nv">header</span><span class="p">:</span> <span class="kt">Text</span><span class="p">(</span><span class="s">"Incoming"</span><span class="p">))</span> <span class="p">{</span>
+                <span class="kt">ForEach</span><span class="p">(</span><span class="n">incoming</span><span class="p">,</span> <span class="nv">id</span><span class="p">:</span> <span class="p">\</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> <span class="p">{</span> <span class="n">message</span> <span class="k">in</span>
+                    <span class="kt">Text</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+
+            <span class="kt">Section</span><span class="p">(</span><span class="nv">header</span><span class="p">:</span> <span class="kt">Text</span><span class="p">(</span><span class="s">"Outgoing"</span><span class="p">))</span> <span class="p">{</span>
+                <span class="kt">ForEach</span><span class="p">(</span><span class="n">outgoing</span><span class="p">,</span> <span class="nv">id</span><span class="p">:</span> <span class="p">\</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> <span class="p">{</span> <span class="n">message</span> <span class="k">in</span>
+                    <span class="kt">Text</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><img src="/public/list2.png" alt="list" /></p>
+
+<p>As you can see here, we use the <em>ForEach</em> view to iterate over collections of items and map them to particular views. It also needs a keypath to the <em>ID</em> field to differentiate the items in the collection.</p>
+
+<h4 id="recursive">Recursive</h4>
+<p>I didn’t face this case too often, but we have to display recursive data structures like trees in our apps from time to time. You can easily do that with the list view in SwiftUI. There is a particular <em>List</em> struct initializer that accepts a keypath for the recursive field of your data structure. It will use the keypath to traverse and display your data recursively.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">Tree</span><span class="o">&lt;</span><span class="kt">Value</span><span class="p">:</span> <span class="kt">Hashable</span><span class="o">&gt;</span><span class="p">:</span> <span class="kt">Hashable</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">value</span><span class="p">:</span> <span class="kt">Value</span>
+    <span class="k">var</span> <span class="nv">children</span><span class="p">:</span> <span class="p">[</span><span class="kt">Tree</span><span class="o">&lt;</span><span class="kt">Value</span><span class="o">&gt;</span><span class="p">]?</span> <span class="o">=</span> <span class="kc">nil</span>
+<span class="p">}</span>
+
+<span class="kd">struct</span> <span class="kt">ContentView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="kd">@State</span> <span class="kd">private</span> <span class="k">var</span> <span class="nv">tree</span><span class="p">:</span> <span class="p">[</span><span class="kt">Tree</span><span class="o">&lt;</span><span class="kt">Int</span><span class="o">&gt;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="o">.</span><span class="nf">init</span><span class="p">(</span>
+            <span class="nv">value</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="nv">children</span><span class="p">:</span> <span class="p">[</span>
+                <span class="o">.</span><span class="nf">init</span><span class="p">(</span><span class="nv">value</span><span class="p">:</span> <span class="mi">2</span><span class="p">),</span>
+                <span class="o">.</span><span class="nf">init</span><span class="p">(</span>
+                    <span class="nv">value</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+                    <span class="nv">children</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="o">.</span><span class="nf">init</span><span class="p">(</span><span class="nv">value</span><span class="p">:</span> <span class="mi">4</span><span class="p">),</span>
+                        <span class="o">.</span><span class="nf">init</span><span class="p">(</span><span class="nv">value</span><span class="p">:</span> <span class="mi">5</span><span class="p">)</span>
+                    <span class="p">]</span>
+                <span class="p">)</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+    <span class="p">]</span>
+    
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">List</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="nv">id</span><span class="p">:</span> <span class="p">\</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="nv">children</span><span class="p">:</span> <span class="p">\</span><span class="o">.</span><span class="n">children</span><span class="p">)</span> <span class="p">{</span> <span class="n">item</span> <span class="k">in</span>
+            <span class="kt">Text</span><span class="p">(</span><span class="kt">String</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><img src="/public/list3.png" alt="list" /></p>
+
+<p>As you can see in the example above, we define the <em>Tree</em> struct with the <em>children</em> field, which is another array of trees. Then, we initiate the list view and provide a keypath to the recursive field.</p>
+
+<blockquote>
+  <p>To learn more about displaying recursive data, take a look at my <a href="/2020/09/02/displaying-recursive-data-using-outlinegroup-in-swiftui/">“Displaying recursive data using OutlineGroup in SwiftUI”</a> post.</p>
+</blockquote>
+
+<h4 id="selection">Selection</h4>
+<p>List view provides you an opportunity to select items only in the edit mode. However, we usually want to mark several items to delete or move them together. Therefore, to enable the selection interface, we have to move the view to the edit mode and provide a selection binding to the list view.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">ContentView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="kd">@State</span> <span class="kd">private</span> <span class="k">var</span> <span class="nv">selection</span><span class="p">:</span> <span class="kt">Set</span><span class="o">&lt;</span><span class="kt">UUID</span><span class="o">&gt;</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="kd">@State</span> <span class="kd">private</span> <span class="k">var</span> <span class="nv">messages</span><span class="p">:</span> <span class="p">[</span><span class="kt">Message</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="kt">Message</span><span class="p">(</span><span class="nv">content</span><span class="p">:</span> <span class="s">"Hello"</span><span class="p">),</span>
+        <span class="kt">Message</span><span class="p">(</span><span class="nv">content</span><span class="p">:</span> <span class="s">"World"</span><span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">NavigationView</span> <span class="p">{</span>
+            <span class="kt">List</span><span class="p">(</span><span class="nv">selection</span><span class="p">:</span> <span class="err">$</span><span class="n">selection</span><span class="p">)</span> <span class="p">{</span>
+                <span class="kt">ForEach</span><span class="p">(</span><span class="n">messages</span><span class="p">,</span> <span class="nv">id</span><span class="p">:</span> <span class="p">\</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> <span class="p">{</span> <span class="n">message</span> <span class="k">in</span>
+                    <span class="kt">Text</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+            <span class="o">.</span><span class="nf">navigationTitle</span><span class="p">(</span><span class="s">"List"</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">toolbar</span> <span class="p">{</span> <span class="kt">EditButton</span><span class="p">()</span> <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><img src="/public/list4.png" alt="list" /></p>
+
+<p>We add the edit button in the toolbar. Edit button toggles the edit mode for the current scope and enables the editing interface. You can allow both single and multi-selection modes. It depends on the type of selection binding you provide. SwiftUI enables multi selection mode when you give a binding to the <em>Set</em>, or it uses single selection binding when you pass the binding to the single <em>ID</em> item.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">ContentView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="kd">@State</span> <span class="kd">private</span> <span class="k">var</span> <span class="nv">selection</span><span class="p">:</span> <span class="kt">UUID</span><span class="p">?</span>
+    <span class="kd">@State</span> <span class="kd">private</span> <span class="k">var</span> <span class="nv">messages</span><span class="p">:</span> <span class="p">[</span><span class="kt">Message</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="kt">Message</span><span class="p">(</span><span class="nv">content</span><span class="p">:</span> <span class="s">"Hello"</span><span class="p">),</span>
+        <span class="kt">Message</span><span class="p">(</span><span class="nv">content</span><span class="p">:</span> <span class="s">"World"</span><span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">NavigationView</span> <span class="p">{</span>
+            <span class="kt">List</span><span class="p">(</span><span class="nv">selection</span><span class="p">:</span> <span class="err">$</span><span class="n">selection</span><span class="p">)</span> <span class="p">{</span>
+                <span class="kt">ForEach</span><span class="p">(</span><span class="n">messages</span><span class="p">,</span> <span class="nv">id</span><span class="p">:</span> <span class="p">\</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> <span class="p">{</span> <span class="n">message</span> <span class="k">in</span>
+                    <span class="kt">Text</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+            <span class="o">.</span><span class="nf">navigationTitle</span><span class="p">(</span><span class="s">"List"</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">toolbar</span> <span class="p">{</span> <span class="kt">EditButton</span><span class="p">()</span> <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Here we provide a binding to the single item <em>ID</em>. That’s why SwiftUI enables the single selection mode on the list.</p>
+
+<h4 id="swipe-actions">Swipe actions</h4>
+<p>We can enable leading and trailing swipe actions for the list items. We can quickly achieve that by using the new <em>swipeActions</em> view modifier.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">ContentView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="kd">@State</span> <span class="kd">private</span> <span class="k">var</span> <span class="nv">messages</span><span class="p">:</span> <span class="p">[</span><span class="kt">Message</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="kt">Message</span><span class="p">(</span><span class="nv">content</span><span class="p">:</span> <span class="s">"Hello"</span><span class="p">),</span>
+        <span class="kt">Message</span><span class="p">(</span><span class="nv">content</span><span class="p">:</span> <span class="s">"World"</span><span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">NavigationView</span> <span class="p">{</span>
+            <span class="kt">List</span> <span class="p">{</span>
+                <span class="kt">ForEach</span><span class="p">(</span><span class="n">messages</span><span class="p">,</span> <span class="nv">id</span><span class="p">:</span> <span class="p">\</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> <span class="p">{</span> <span class="n">message</span> <span class="k">in</span>
+                    <span class="kt">Text</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+                        <span class="o">.</span><span class="nf">swipeActions</span><span class="p">(</span><span class="nv">edge</span><span class="p">:</span> <span class="o">.</span><span class="n">trailing</span><span class="p">,</span> <span class="nv">allowsFullSwipe</span><span class="p">:</span> <span class="kc">true</span><span class="p">)</span> <span class="p">{</span>
+                            <span class="kt">Button</span><span class="p">(</span><span class="s">"Delete"</span><span class="p">,</span> <span class="nv">role</span><span class="p">:</span> <span class="o">.</span><span class="n">destructive</span><span class="p">)</span> <span class="p">{</span>
+                                <span class="n">messages</span><span class="o">.</span><span class="n">removeAll</span> <span class="p">{</span> <span class="nv">$0</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">message</span><span class="o">.</span><span class="n">id</span> <span class="p">}</span>
+                            <span class="p">}</span>
+                        <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+            <span class="o">.</span><span class="nf">navigationTitle</span><span class="p">(</span><span class="s">"List"</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>In the example above, we add the opportunity to remove the items from the list using a trailing edge swipe. We can provide multiple actions on every edge. Here is another example with two swipeable actions on the leading edge with different button colors.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">ContentView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="kd">@State</span> <span class="kd">private</span> <span class="k">var</span> <span class="nv">messages</span><span class="p">:</span> <span class="p">[</span><span class="kt">Message</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="kt">Message</span><span class="p">(</span><span class="nv">content</span><span class="p">:</span> <span class="s">"Hello"</span><span class="p">),</span>
+        <span class="kt">Message</span><span class="p">(</span><span class="nv">content</span><span class="p">:</span> <span class="s">"World"</span><span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">NavigationView</span> <span class="p">{</span>
+            <span class="kt">List</span> <span class="p">{</span>
+                <span class="kt">ForEach</span><span class="p">(</span><span class="n">messages</span><span class="p">,</span> <span class="nv">id</span><span class="p">:</span> <span class="p">\</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> <span class="p">{</span> <span class="n">message</span> <span class="k">in</span>
+                    <span class="kt">Text</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+                        <span class="o">.</span><span class="nf">swipeActions</span><span class="p">(</span><span class="nv">edge</span><span class="p">:</span> <span class="o">.</span><span class="n">leading</span><span class="p">,</span> <span class="nv">allowsFullSwipe</span><span class="p">:</span> <span class="kc">false</span><span class="p">)</span> <span class="p">{</span>
+                            <span class="kt">Button</span><span class="p">(</span><span class="s">"Favorite"</span><span class="p">)</span> <span class="p">{</span>
+                                <span class="c1">// do some work here</span>
+                            <span class="p">}</span><span class="o">.</span><span class="nf">tint</span><span class="p">(</span><span class="o">.</span><span class="n">yellow</span><span class="p">)</span>
+
+                            <span class="kt">Button</span><span class="p">(</span><span class="s">"Move"</span><span class="p">)</span> <span class="p">{</span>
+                                <span class="c1">// do some work here</span>
+                            <span class="p">}</span><span class="o">.</span><span class="nf">tint</span><span class="p">(</span><span class="o">.</span><span class="n">green</span><span class="p">)</span>
+                        <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+            <span class="o">.</span><span class="nf">navigationTitle</span><span class="p">(</span><span class="s">"List"</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h4 id="styling-options">Styling options</h4>
+<p>SwiftUI provides a few different styles for the list view. It includes <em>plain, sidebar, inset, grouped, inset, and insetGrouped</em> styles. By default, SwiftUI uses <em>insetGrouped</em> style, but you can change it to any style you need using the <em>listStyle</em> view modifier. Keep in mind that the <em>listStyle</em> view modifier uses the environment to propagate the selected style, and it will affect all the list views down in the view hierarchy.</p>
+
+<blockquote>
+  <p>To learn more about environment in SwiftUI, take a look at my <a href="/2019/08/21/the-power-of-environment-in-swiftui/">“The power of Environment in SwiftUI”</a> post.</p>
+</blockquote>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">ContentView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">NavigationView</span> <span class="p">{</span>
+            <span class="kt">List</span> <span class="p">{</span>
+                <span class="kt">Section</span><span class="p">(</span><span class="nv">header</span><span class="p">:</span> <span class="kt">Text</span><span class="p">(</span><span class="s">"Section 1"</span><span class="p">))</span> <span class="p">{</span>
+                    <span class="kt">Text</span><span class="p">(</span><span class="s">"Hello"</span><span class="p">)</span>
+                <span class="p">}</span><span class="o">.</span><span class="nf">headerProminence</span><span class="p">(</span><span class="o">.</span><span class="n">increased</span><span class="p">)</span>
+
+                <span class="kt">Section</span><span class="p">(</span><span class="nv">header</span><span class="p">:</span> <span class="kt">Text</span><span class="p">(</span><span class="s">"Section 2"</span><span class="p">))</span> <span class="p">{</span>
+                    <span class="kt">Text</span><span class="p">(</span><span class="s">"World"</span><span class="p">)</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+            <span class="o">.</span><span class="nf">listStyle</span><span class="p">(</span><span class="o">.</span><span class="n">insetGrouped</span><span class="p">)</span>
+            <span class="o">.</span><span class="nf">navigationTitle</span><span class="p">(</span><span class="s">"List"</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>In the example above, we apply <em>insetGrouped</em> style, also we use <em>headerProminence</em> modifier to increase the importance of the section which makes the header text bolder and bigger.</p>
+
+<p>SwiftUI also provides us a set of view modifier which allows us to change the tint color of separators, list items or completely hide them from the list.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">ContentView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">NavigationView</span> <span class="p">{</span>
+            <span class="kt">List</span> <span class="p">{</span>
+                <span class="kt">Section</span><span class="p">(</span><span class="nv">header</span><span class="p">:</span> <span class="kt">Text</span><span class="p">(</span><span class="s">"Section 1"</span><span class="p">))</span> <span class="p">{</span>
+                    <span class="kt">Label</span><span class="p">(</span><span class="s">"Hello"</span><span class="p">,</span> <span class="nv">systemImage</span><span class="p">:</span> <span class="s">"message"</span><span class="p">)</span>
+                        <span class="o">.</span><span class="nf">listItemTint</span><span class="p">(</span><span class="o">.</span><span class="n">red</span><span class="p">)</span>
+                <span class="p">}</span>
+
+                <span class="kt">Section</span><span class="p">(</span><span class="nv">header</span><span class="p">:</span> <span class="kt">Text</span><span class="p">(</span><span class="s">"Section 2"</span><span class="p">))</span> <span class="p">{</span>
+                    <span class="kt">Text</span><span class="p">(</span><span class="s">"World"</span><span class="p">)</span>
+                        <span class="o">.</span><span class="nf">listRowSeparatorTint</span><span class="p">(</span><span class="o">.</span><span class="n">red</span><span class="p">)</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+            <span class="o">.</span><span class="nf">listStyle</span><span class="p">(</span><span class="o">.</span><span class="n">grouped</span><span class="p">)</span>
+            <span class="o">.</span><span class="nf">listSectionSeparator</span><span class="p">(</span><span class="o">.</span><span class="n">hidden</span><span class="p">,</span> <span class="nv">edges</span><span class="p">:</span> <span class="o">.</span><span class="n">all</span><span class="p">)</span>
+            <span class="o">.</span><span class="nf">navigationTitle</span><span class="p">(</span><span class="s">"List"</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h4 id="conclusion">Conclusion</h4>
+<p>This week we learned how to use the most crucial SwiftUI view. So I’m happy to cover the list view in my blog finally. I hope you enjoy the post. Feel free to follow me on <a href="https://twitter.com/mecid">Twitter</a> and ask your questions related to this post. Thanks for reading, and see you next week!</p>
+
+</article>
+
+
+<aside class="related">
+  <h4>Recent posts</h4>
+  <ul class="related-posts">
+    
+      <li>
+        <a title="Custom accessibility content in SwiftUI" href="/2021/10/06/custom-accessibility-content-in-swiftui/">
+          Custom accessibility content in SwiftUI
+          <small><time datetime="2021-10-06T00:00:00+08:00">06 Oct 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Audio graphs in SwiftUI" href="/2021/09/29/audio-graphs-in-swiftui/">
+          Audio graphs in SwiftUI
+          <small><time datetime="2021-09-29T00:00:00+08:00">29 Sep 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Accessibility focus in SwiftUI" href="/2021/09/23/accessibility-focus-in-swiftui/">
+          Accessibility focus in SwiftUI
+          <small><time datetime="2021-09-23T00:00:00+08:00">23 Sep 2021</time></small>
+        </a>
+      </li>
+    
+  </ul>
+</aside>
+
+
+      </main>
+
+      <footer class="footer">
+          <img class="avatar" alt="mecid" width="100" height="100" data-proofer-ignore="true" src="https://avatars2.githubusercontent.com/mecid?v=3&s=100" srcset="https://avatars2.githubusercontent.com/mecid?v=3&s=100 1x, https://avatars2.githubusercontent.com/mecid?v=3&s=200 2x, https://avatars2.githubusercontent.com/mecid?v=3&s=300 3x, https://avatars2.githubusercontent.com/mecid?v=3&s=400 4x" />
+          <small>Hi there! I am code4you,I like to program, and do some App.</small>
+          <small>I'm a developer</small>
+          <small>Feel free to follow me on <a href="https://github.com/code4you2021">Github</a>.</small>
+        <small>
+          &copy; <time datetime="2021-10-17T11:25:11+08:00">2021</time>. All rights reserved.
+        </small>
+      </footer>
+    </div>
+
+    
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1WQVZK1CR7"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-18491817-18');
+    </script>
+    
+  </body>
+</html>

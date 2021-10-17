@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" content="swift ios development apple watch iphone ipad swiftui macos uikit dev wwdc tutorial guide redux tea state container" />
+
+  <!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Commands in SwiftUI | Code4You</title>
+<meta name="generator" content="Jekyll v3.9.0" />
+<meta property="og:title" content="Commands in SwiftUI" />
+<meta name="author" content="Code4You" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="This week we will talk about another new API that Apple released this year during WWDC 20. Replacing AppDelegate with the new SwiftUI App Lifecycle brings us tons of new APIs that we can use to replace old functionality with a brand new declarative API. One of those APIs is commands, which we will cover today." />
+<meta property="og:description" content="This week we will talk about another new API that Apple released this year during WWDC 20. Replacing AppDelegate with the new SwiftUI App Lifecycle brings us tons of new APIs that we can use to replace old functionality with a brand new declarative API. One of those APIs is commands, which we will cover today." />
+<link rel="canonical" href="http://localhost:4000/2020/11/24/commands-in-swiftui/" />
+<meta property="og:url" content="http://localhost:4000/2020/11/24/commands-in-swiftui/" />
+<meta property="og:site_name" content="Code4You" />
+<meta property="og:image" content="http://localhost:4000/public/ipad.jpg" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2020-11-24T00:00:00+08:00" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta property="twitter:image" content="http://localhost:4000/public/ipad.jpg" />
+<meta property="twitter:title" content="Commands in SwiftUI" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2020/11/24/commands-in-swiftui/"},"url":"http://localhost:4000/2020/11/24/commands-in-swiftui/","image":"http://localhost:4000/public/ipad.jpg","author":{"@type":"Person","name":"Code4You"},"headline":"Commands in SwiftUI","description":"This week we will talk about another new API that Apple released this year during WWDC 20. Replacing AppDelegate with the new SwiftUI App Lifecycle brings us tons of new APIs that we can use to replace old functionality with a brand new declarative API. One of those APIs is commands, which we will cover today.","dateModified":"2020-11-24T00:00:00+08:00","datePublished":"2020-11-24T00:00:00+08:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+  <link rel="alternate" type="application/atom+xml" title="Code4You" href="/feed.xml">
+</head>
+
+
+  <body>
+
+    <div class="container content">
+      <header class="masthead">
+        <nav>
+          <h1 class="masthead-title">
+            <a href="/" title="Home">Code4You</a>
+          </h1>
+          <div>
+            <a href="/categories" title="Categories">Categories</a>
+            <a href="/archive" title="Archive">Archive</a>
+            <a href="/feed.xml" title="Feed">Feed</a>
+          </div>
+        </nav>
+      </header>
+
+      <main>
+        <article class="post">
+  <h2 class="post-title">Commands in SwiftUI</h2>
+  <time datetime="2020-11-24T00:00:00+08:00" class="post-date">24 Nov 2020</time>
+  <p>This week we will talk about another new API that Apple released this year during WWDC 20. Replacing <em>AppDelegate</em> with the new SwiftUI App Lifecycle brings us tons of new APIs that we can use to replace old functionality with a brand new declarative API. One of those APIs is commands, which we will cover today.</p>
+
+<!-- <div class="ads">
+    <span>
+        Why don’t more iOS apps use voice? Machine learning for voice is hard, and using Siri is clunky and rigid. So we open-sourced an iOS library (also Android, Node, Python, & React Native), and built a no-code web tool to make custom wake words, speech recognizers, and AI voices—for all devs! <a href="https://www.spokestack.io/?utm_source=swiftui_weekly&utm_medium=email&utm_campaign=maker_launch_PAID">Try it for free.</a>
+    </span>
+</div> -->
+
+<p>Commands are realized in different ways on different platforms. The main menu uses the available command menus and groups to organize its main menu items on macOS. Each menu is represented as a top-level menu bar menu. Each command group has a corresponding set of menu items in one of the top-level menus, delimited by separator menu items.</p>
+
+<p>On iPadOS, commands with keyboard shortcuts are exposed in the shortcut discoverability HUD that users see when they hold down the Command key.</p>
+
+<blockquote>
+  <p>To learn more about implementing keyboard shortcuts, take a look at my <a href="/2020/11/17/keyboard-shortcuts-in-swiftui/">“Keyboard shortcuts in SwiftUI”</a> post.</p>
+</blockquote>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">@main</span>
+<span class="kd">struct</span> <span class="kt">TestProjectApp</span><span class="p">:</span> <span class="kt">App</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">Scene</span> <span class="p">{</span>
+        <span class="kt">WindowGroup</span> <span class="p">{</span>
+            <span class="kt">ContentView</span><span class="p">()</span>
+        <span class="p">}</span><span class="o">.</span><span class="n">commands</span> <span class="p">{</span>
+            <span class="kt">CommandMenu</span><span class="p">(</span><span class="s">"First menu"</span><span class="p">)</span> <span class="p">{</span>
+                <span class="kt">Button</span><span class="p">(</span><span class="s">"Print message"</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="nf">print</span><span class="p">(</span><span class="s">"Hello World!"</span><span class="p">)</span>
+                <span class="p">}</span><span class="o">.</span><span class="nf">keyboardShortcut</span><span class="p">(</span><span class="s">"p"</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><img src="/public/commands1.png" alt="commands" /></p>
+
+<p>As you can see in the example above, you can attach the commands modifier to any scene in your app and provide a <em>CommandBuilder</em> closure. <em>CommandBuilder</em> is a function builder like <em>ViewBuilder</em>, but instead of views, it builds commands. You can use primitive command types provided by SwiftUI to compose them together and build your own unique main menu experience.</p>
+
+<blockquote>
+  <p>A scene is a part of an app’s user interface with a lifecycle managed by the system. To learn more take a look at my <a href="/2020/08/26/managing-scenes-in-swiftui/">“Managing scenes in SwiftUI”</a> post.</p>
+</blockquote>
+
+<p><em>CommandMenu</em> is a primitive command type that accepts a title for your menu item and a <em>ViewBuilder</em> closure that will be used to build menu items. You can use <em>Button, Picker, Divider, Toggle,</em> and other SwiftUI views to build your command view hierarchy.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">@main</span>
+<span class="kd">struct</span> <span class="kt">TestProjectApp</span><span class="p">:</span> <span class="kt">App</span> <span class="p">{</span>
+    <span class="kd">@State</span> <span class="kd">private</span> <span class="k">var</span> <span class="nv">filter</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">Scene</span> <span class="p">{</span>
+        <span class="kt">WindowGroup</span> <span class="p">{</span>
+            <span class="kt">ContentView</span><span class="p">()</span>
+        <span class="p">}</span><span class="o">.</span><span class="n">commands</span> <span class="p">{</span>
+            <span class="kt">CommandMenu</span><span class="p">(</span><span class="s">"First menu"</span><span class="p">)</span> <span class="p">{</span>
+                <span class="kt">Button</span><span class="p">(</span><span class="s">"Print message"</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="nf">print</span><span class="p">(</span><span class="s">"Hello World!"</span><span class="p">)</span>
+                <span class="p">}</span><span class="o">.</span><span class="nf">keyboardShortcut</span><span class="p">(</span><span class="s">"p"</span><span class="p">)</span>
+
+                <span class="kt">Button</span><span class="p">(</span><span class="s">"Print second message"</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="nf">print</span><span class="p">(</span><span class="s">"Second message!"</span><span class="p">)</span>
+                <span class="p">}</span>
+
+                <span class="kt">Divider</span><span class="p">()</span>
+
+                <span class="kt">Button</span><span class="p">(</span><span class="s">"Print third message"</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="nf">print</span><span class="p">(</span><span class="s">"Third message!"</span><span class="p">)</span>
+                <span class="p">}</span>
+
+                <span class="kt">Picker</span><span class="p">(</span><span class="nv">selection</span><span class="p">:</span> <span class="err">$</span><span class="n">filter</span><span class="p">,</span> <span class="nv">label</span><span class="p">:</span> <span class="kt">Text</span><span class="p">(</span><span class="s">"Filter"</span><span class="p">))</span> <span class="p">{</span>
+                    <span class="kt">Text</span><span class="p">(</span><span class="s">"Option 1"</span><span class="p">)</span><span class="o">.</span><span class="nf">tag</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="kt">Text</span><span class="p">(</span><span class="s">"Option 2"</span><span class="p">)</span><span class="o">.</span><span class="nf">tag</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+                    <span class="kt">Text</span><span class="p">(</span><span class="s">"Option 3"</span><span class="p">)</span><span class="o">.</span><span class="nf">tag</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><img src="/public/commands2.png" alt="commands" /></p>
+
+<p>There can be some situations where you need to reuse command types. You can do that by defining your own commands type by conforming to <em>Commands</em> protocol. This approach allows you to reuse your commands.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">SortingCommands</span><span class="p">:</span> <span class="kt">Commands</span> <span class="p">{</span>
+    <span class="kd">@Binding</span> <span class="k">var</span> <span class="nv">sorting</span><span class="p">:</span> <span class="kt">Int</span>
+
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">Commands</span> <span class="p">{</span>
+        <span class="kt">CommandMenu</span><span class="p">(</span><span class="s">"Sort"</span><span class="p">)</span> <span class="p">{</span>
+            <span class="kt">Picker</span><span class="p">(</span><span class="nv">selection</span><span class="p">:</span> <span class="err">$</span><span class="n">sorting</span><span class="p">,</span> <span class="nv">label</span><span class="p">:</span> <span class="kt">Text</span><span class="p">(</span><span class="s">"Sorting"</span><span class="p">))</span> <span class="p">{</span>
+                <span class="kt">Text</span><span class="p">(</span><span class="s">"Option 1"</span><span class="p">)</span><span class="o">.</span><span class="nf">tag</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                <span class="kt">Text</span><span class="p">(</span><span class="s">"Option 2"</span><span class="p">)</span><span class="o">.</span><span class="nf">tag</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+                <span class="kt">Text</span><span class="p">(</span><span class="s">"Option 3"</span><span class="p">)</span><span class="o">.</span><span class="nf">tag</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">@main</span>
+<span class="kd">struct</span> <span class="kt">MyApp</span><span class="p">:</span> <span class="kt">App</span> <span class="p">{</span>
+    <span class="kd">@State</span> <span class="kd">private</span> <span class="k">var</span> <span class="nv">sorting</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">Scene</span> <span class="p">{</span>
+        <span class="kt">WindowGroup</span> <span class="p">{</span>
+            <span class="kt">ContentView</span><span class="p">()</span>
+        <span class="p">}</span><span class="o">.</span><span class="n">commands</span> <span class="p">{</span>
+            <span class="kt">SortingCommands</span><span class="p">(</span><span class="nv">sorting</span><span class="p">:</span> <span class="err">$</span><span class="n">sorting</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Now we know how to create new command menus. What if we need to add the menu item to the existing system provided menu or replace it. For this particular case, SwiftUI provides us <em>CommandGroup</em> type, which allows us to insert new command items before, after or even replace the system provided item. Let’s see how we can use it.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">@main</span>
+<span class="kd">struct</span> <span class="kt">TestProjectApp</span><span class="p">:</span> <span class="kt">App</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">Scene</span> <span class="p">{</span>
+        <span class="kt">WindowGroup</span> <span class="p">{</span>
+            <span class="kt">ContentView</span><span class="p">()</span>
+        <span class="p">}</span><span class="o">.</span><span class="n">commands</span> <span class="p">{</span>
+            <span class="kt">CommandGroup</span><span class="p">(</span><span class="nv">before</span><span class="p">:</span> <span class="kt">CommandGroupPlacement</span><span class="o">.</span><span class="n">newItem</span><span class="p">)</span> <span class="p">{</span>
+                <span class="kt">Button</span><span class="p">(</span><span class="s">"before item"</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="nf">print</span><span class="p">(</span><span class="s">"before item"</span><span class="p">)</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+
+            <span class="kt">CommandGroup</span><span class="p">(</span><span class="nv">replacing</span><span class="p">:</span> <span class="kt">CommandGroupPlacement</span><span class="o">.</span><span class="n">appInfo</span><span class="p">)</span> <span class="p">{</span>
+                <span class="kt">Button</span><span class="p">(</span><span class="s">"Custom app info"</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="c1">// show custom app info</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+
+            <span class="kt">CommandGroup</span><span class="p">(</span><span class="nv">after</span><span class="p">:</span> <span class="kt">CommandGroupPlacement</span><span class="o">.</span><span class="n">newItem</span><span class="p">)</span> <span class="p">{</span>
+                <span class="kt">Button</span><span class="p">(</span><span class="s">"after item"</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="nf">print</span><span class="p">(</span><span class="s">"after item"</span><span class="p">)</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><img src="/public/commands3.png" alt="commands" /></p>
+
+<p>As you can see in the example above, we create <em>CommandGroup</em> and pass it a <em>CommandGroupPlacement</em>, which will be used as an anchor point for inserted or replaced items. <em>CommandGroupPlacement</em> provides us with many system command locations like <em>newItem, saveItem, printItem, undoRedo, pasteboard, windowArrangement, help, etc.</em></p>
+
+<p>SwiftUI also provides us a few ready to use commands for searching, editing and transforming text that you can enable by using commands modifier and attaching it to any scene you need.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">@main</span>
+<span class="kd">struct</span> <span class="kt">TestProjectApp</span><span class="p">:</span> <span class="kt">App</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">Scene</span> <span class="p">{</span>
+        <span class="kt">WindowGroup</span> <span class="p">{</span>
+            <span class="kt">ContentView</span><span class="p">()</span>
+        <span class="p">}</span><span class="o">.</span><span class="n">commands</span> <span class="p">{</span>
+            <span class="kt">TextEditingCommands</span><span class="p">()</span>
+            <span class="kt">TextFormattingCommands</span><span class="p">()</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h4 id="conclusion">Conclusion</h4>
+<p>This week, we learned about another new declarative API that SwiftUI provides to build your macOS app’s main menu. I hope you enjoy this declarative API that allows us to maintain a single codebase for different platforms. Feel free to follow me on <a href="https://twitter.com/mecid">Twitter</a> and ask your questions related to this article. Thanks for reading, and see you next week!</p>
+
+</article>
+
+
+<aside class="related">
+  <h4>Recent posts</h4>
+  <ul class="related-posts">
+    
+      <li>
+        <a title="Custom accessibility content in SwiftUI" href="/2021/10/06/custom-accessibility-content-in-swiftui/">
+          Custom accessibility content in SwiftUI
+          <small><time datetime="2021-10-06T00:00:00+08:00">06 Oct 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Audio graphs in SwiftUI" href="/2021/09/29/audio-graphs-in-swiftui/">
+          Audio graphs in SwiftUI
+          <small><time datetime="2021-09-29T00:00:00+08:00">29 Sep 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Accessibility focus in SwiftUI" href="/2021/09/23/accessibility-focus-in-swiftui/">
+          Accessibility focus in SwiftUI
+          <small><time datetime="2021-09-23T00:00:00+08:00">23 Sep 2021</time></small>
+        </a>
+      </li>
+    
+  </ul>
+</aside>
+
+
+      </main>
+
+      <footer class="footer">
+          <img class="avatar" alt="mecid" width="100" height="100" data-proofer-ignore="true" src="https://avatars2.githubusercontent.com/mecid?v=3&s=100" srcset="https://avatars2.githubusercontent.com/mecid?v=3&s=100 1x, https://avatars2.githubusercontent.com/mecid?v=3&s=200 2x, https://avatars2.githubusercontent.com/mecid?v=3&s=300 3x, https://avatars2.githubusercontent.com/mecid?v=3&s=400 4x" />
+          <small>Hi there! I am code4you,I like to program, and do some App.</small>
+          <small>I'm a developer</small>
+          <small>Feel free to follow me on <a href="https://github.com/code4you2021">Github</a>.</small>
+        <small>
+          &copy; <time datetime="2021-10-17T11:25:11+08:00">2021</time>. All rights reserved.
+        </small>
+      </footer>
+    </div>
+
+    
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1WQVZK1CR7"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-18491817-18');
+    </script>
+    
+  </body>
+</html>

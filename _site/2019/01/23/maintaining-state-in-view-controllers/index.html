@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" content="swift ios development apple watch iphone ipad swiftui macos uikit dev wwdc tutorial guide redux tea state container" />
+
+  <!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Maintaining State in Your ViewControllers | Code4You</title>
+<meta name="generator" content="Jekyll v3.9.0" />
+<meta property="og:title" content="Maintaining State in Your ViewControllers" />
+<meta name="author" content="Code4You" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Last week we talked about extracting reusable code samples from view controllers into protocols and protocol extensions. Today I want to show you another nice use case of protocols while maintaining the state of view controllers." />
+<meta property="og:description" content="Last week we talked about extracting reusable code samples from view controllers into protocols and protocol extensions. Today I want to show you another nice use case of protocols while maintaining the state of view controllers." />
+<link rel="canonical" href="http://localhost:4000/2019/01/23/maintaining-state-in-view-controllers/" />
+<meta property="og:url" content="http://localhost:4000/2019/01/23/maintaining-state-in-view-controllers/" />
+<meta property="og:site_name" content="Code4You" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-01-23T00:00:00+08:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Maintaining State in Your ViewControllers" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2019/01/23/maintaining-state-in-view-controllers/"},"url":"http://localhost:4000/2019/01/23/maintaining-state-in-view-controllers/","author":{"@type":"Person","name":"Code4You"},"headline":"Maintaining State in Your ViewControllers","description":"Last week we talked about extracting reusable code samples from view controllers into protocols and protocol extensions. Today I want to show you another nice use case of protocols while maintaining the state of view controllers.","dateModified":"2019-01-23T00:00:00+08:00","datePublished":"2019-01-23T00:00:00+08:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+  <link rel="alternate" type="application/atom+xml" title="Code4You" href="/feed.xml">
+</head>
+
+
+  <body>
+
+    <div class="container content">
+      <header class="masthead">
+        <nav>
+          <h1 class="masthead-title">
+            <a href="/" title="Home">Code4You</a>
+          </h1>
+          <div>
+            <a href="/categories" title="Categories">Categories</a>
+            <a href="/archive" title="Archive">Archive</a>
+            <a href="/feed.xml" title="Feed">Feed</a>
+          </div>
+        </nav>
+      </header>
+
+      <main>
+        <article class="post">
+  <h2 class="post-title">Maintaining State in Your ViewControllers</h2>
+  <time datetime="2019-01-23T00:00:00+08:00" class="post-date">23 Jan 2019</time>
+  <p>Last week we talked about <a href="/2019/01/17/using-protocols-as-composable-extensions/">extracting reusable code samples from view controllers into protocols and protocol extensions</a>. Today I want to show you another nice use case of protocols while maintaining the state of view controllers.</p>
+
+<!-- <div class="ads">
+    <span>
+        Why don’t more iOS apps use voice? Machine learning for voice is hard, and using Siri is clunky and rigid. So we open-sourced an iOS library (also Android, Node, Python, & React Native), and built a no-code web tool to make custom wake words, speech recognizers, and AI voices—for all devs! <a href="https://www.spokestack.io/?utm_source=swiftui_weekly&utm_medium=email&utm_campaign=maker_launch_PAID">Try it for free.</a>
+    </span>
+</div> -->
+
+<p>Assume that we have a screen for presenting the list of user watched shows — our app downloads it from the web service like Trakt. We can describe the state of view controller within three variables:</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="kt">HistoryViewController</span><span class="p">:</span> <span class="kt">UIViewController</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">loading</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">false</span> <span class="p">{</span>
+        <span class="k">didSet</span> <span class="p">{</span>
+            <span class="nf">renderLoading</span><span class="p">()</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">var</span> <span class="nv">shows</span><span class="p">:</span> <span class="p">[</span><span class="kt">Show</span><span class="p">]?</span> <span class="p">{</span>
+        <span class="k">didSet</span> <span class="p">{</span>
+            <span class="nf">renderShows</span><span class="p">()</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">var</span> <span class="nv">error</span><span class="p">:</span> <span class="kt">Error</span><span class="p">?</span> <span class="p">{</span>
+        <span class="k">didSet</span> <span class="p">{</span>
+            <span class="nf">renderError</span><span class="p">()</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<ol>
+  <li>loading indicates whether the view controller loading the data or already finished the job.</li>
+  <li>shows variable stores the actual history of watched TV shows.</li>
+  <li>error property reports whether the request ended with an error.</li>
+</ol>
+
+<p>Here is fetch method, which used to request data from Trakt web service:</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="kd">private</span> <span class="kd">func</span> <span class="nf">fetch</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">loading</span> <span class="o">=</span> <span class="kc">true</span>
+        <span class="n">historyService</span><span class="o">.</span><span class="n">fetch</span> <span class="p">{</span> <span class="p">[</span><span class="k">weak</span> <span class="k">self</span><span class="p">]</span> <span class="n">result</span> <span class="k">in</span>
+            <span class="k">self</span><span class="p">?</span><span class="o">.</span><span class="n">loading</span> <span class="o">=</span> <span class="kc">false</span>
+            <span class="k">switch</span> <span class="n">result</span> <span class="p">{</span>
+            <span class="k">case</span> <span class="o">.</span><span class="nf">success</span><span class="p">(</span><span class="k">let</span> <span class="nv">shows</span><span class="p">):</span> <span class="k">self</span><span class="p">?</span><span class="o">.</span><span class="n">shows</span> <span class="o">=</span> <span class="n">shows</span>
+            <span class="k">case</span> <span class="o">.</span><span class="nf">failure</span><span class="p">(</span><span class="k">let</span> <span class="nv">error</span><span class="p">):</span> <span class="k">self</span><span class="p">?</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="n">error</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+</code></pre></div></div>
+
+<p>Before starting our request to Trakt web service, we set loading to true, which calls <em>renderLoading</em> method. After that, we initiate the API request to fetch the history of watched TV shows. In the completion handler, we set shows or error variables accordingly to the result of the request. At first glance, it should work pretty well, but here we have a couple of downsides.</p>
+
+<ol>
+  <li>We have to reset loading, error, shows variables on every request to avoid an invalid state. For example, in case of the first request fails and user retries it with the successful request, we still have value in the error property.</li>
+  <li>We want an exclusive state, at any point, we need only one state of the screen: error or loading or shows. Right now we introduce more state variations than we have, and this can leads to ambiguous situations.</li>
+</ol>
+
+<h4 id="enums">Enums</h4>
+<p>We want the exclusive state, and this is about enums. Enums give the opportunity to have only one case at any point in time. Let’s refactor our code with enum.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">enum</span> <span class="kt">State</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="n">loading</span>
+    <span class="k">case</span> <span class="nf">error</span><span class="p">(</span><span class="kt">Error</span><span class="p">)</span>
+    <span class="k">case</span> <span class="nf">loaded</span><span class="p">([</span><span class="kt">Show</span><span class="p">])</span>
+<span class="p">}</span>
+
+<span class="kd">class</span> <span class="kt">HistoryViewController</span><span class="p">:</span> <span class="kt">UIViewController</span> <span class="p">{</span>
+    <span class="kd">private</span> <span class="k">var</span> <span class="nv">state</span><span class="p">:</span> <span class="kt">State</span> <span class="p">{</span>
+        <span class="k">didSet</span> <span class="p">{</span>
+            <span class="nf">render</span><span class="p">()</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">extension</span> <span class="kt">HistoryViewController</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">render</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">switch</span> <span class="n">state</span> <span class="p">{</span>
+        <span class="k">case</span> <span class="o">.</span><span class="nv">loading</span><span class="p">:</span> <span class="c1">// render loading</span>
+        <span class="k">case</span> <span class="o">.</span><span class="nf">error</span><span class="p">(</span><span class="k">let</span> <span class="nv">error</span><span class="p">):</span> <span class="c1">// render error</span>
+        <span class="k">case</span> <span class="nf">loaded</span><span class="p">(</span><span class="k">let</span> <span class="nv">shows</span><span class="p">):</span> <span class="c1">// render shows</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Here we declare <em>State</em> enum which exclusively describes our state cases. As soon as state variable changes, it calls the <em>render</em> method. Inside the <em>render</em> method, we switch state to display it. Another positive change here is clean access to screen state. We don’t need to check all the three variables to understand what’s happening on the screen right now.</p>
+
+<h4 id="protocols-with-associated-types">Protocols with associated types</h4>
+<p>We already made nice refactoring, but it is very bounded to current screen, which presents the list of the shows. Let’s add a generic constraint to <em>State</em> enum, to make it more usable across the app screens, which also have loading and error states, but present other data entities.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">enum</span> <span class="kt">State</span><span class="o">&lt;</span><span class="kt">Data</span><span class="o">&gt;</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="n">loading</span>
+    <span class="k">case</span> <span class="nf">loaded</span><span class="p">(</span><span class="kt">Data</span><span class="p">)</span>
+    <span class="k">case</span> <span class="nf">error</span><span class="p">(</span><span class="kt">Error</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Let’s go beyond and extract state handling into a generic protocol with protocol extension, which any view controller can adapt to add this logic.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">protocol</span> <span class="kt">StatePresentable</span><span class="p">:</span> <span class="kt">ActivityPresentable</span><span class="p">,</span> <span class="kt">ErrorPresentable</span> <span class="p">{</span>
+    <span class="kd">associatedtype</span> <span class="kt">Data</span>
+
+    <span class="k">var</span> <span class="nv">state</span><span class="p">:</span> <span class="kt">State</span><span class="o">&lt;</span><span class="kt">Data</span><span class="o">&gt;</span> <span class="p">{</span> <span class="k">get</span> <span class="k">set</span> <span class="p">}</span>
+    <span class="kd">func</span> <span class="nf">render</span><span class="p">()</span>
+    <span class="kd">func</span> <span class="nf">render</span><span class="p">(</span><span class="n">_</span> <span class="nv">data</span><span class="p">:</span> <span class="kt">Data</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kd">extension</span> <span class="kt">StatePresentable</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">render</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">switch</span> <span class="n">state</span> <span class="p">{</span>
+        <span class="k">case</span> <span class="o">.</span><span class="nv">loading</span><span class="p">:</span>
+            <span class="nf">setActivityStatus</span><span class="p">(</span><span class="o">.</span><span class="n">visible</span><span class="p">)</span>
+        <span class="k">case</span> <span class="o">.</span><span class="nf">error</span><span class="p">(</span><span class="k">let</span> <span class="nv">error</span><span class="p">):</span>
+            <span class="nf">setActivityStatus</span><span class="p">(</span><span class="o">.</span><span class="n">hidden</span><span class="p">)</span>
+            <span class="nf">present</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+        <span class="k">case</span> <span class="o">.</span><span class="nf">loaded</span><span class="p">(</span><span class="k">let</span> <span class="nv">data</span><span class="p">):</span>
+            <span class="nf">setActivityStatus</span><span class="p">(</span><span class="o">.</span><span class="n">hidden</span><span class="p">)</span>
+            <span class="nf">render</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Here we have <em>StatePresentable</em> protocol which extends from <em>ActivityPresentable</em> and <em>ErrorPresentable</em> protocols. We described these two protocols in the previous <a href="/2019/01/17/using-protocols-as-composable-extensions/">post</a>.
+<em>StatePresentable</em> protocol has associated type Data, which we use as generic constraint for <em>State</em> enum, to make it usable for any type of data. We also added the default implementation for <em>render</em> method which handles state changes.</p>
+
+<p>Here is the usage example of <em>StatePresentable</em> protocol.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="kt">HistoryViewController</span><span class="p">:</span> <span class="kt">UIViewController</span> <span class="p">{</span>
+    <span class="kd">private</span> <span class="k">var</span> <span class="nv">state</span><span class="p">:</span> <span class="kt">State</span><span class="o">&lt;</span><span class="p">[</span><span class="kt">Show</span><span class="p">]</span><span class="o">&gt;</span> <span class="p">{</span>
+        <span class="k">didSet</span> <span class="p">{</span>
+            <span class="nf">render</span><span class="p">()</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">extension</span> <span class="kt">HistoryViewController</span><span class="p">:</span> <span class="kt">StatePresentable</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">render</span><span class="p">(</span><span class="n">_</span> <span class="nv">data</span><span class="p">:</span> <span class="p">[</span><span class="kt">Show</span><span class="p">])</span> <span class="p">{</span>
+        <span class="c1">// render your data here</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>All we need is to conform <em>StatePresentable</em> protocol, add the <em>didSet</em> observer for state property and implement <em>render</em> method, where we add data presenting logic for the actual screen.</p>
+
+<h4 id="conclusion">Conclusion</h4>
+<p>Protocol with associated types can be robust by enabling the power of generic constraints and making codebase more reusable. I really suggest to read great <a href="https://www.natashatherobot.com/swift-what-are-protocols-with-associated-types/">post</a> by NatashaTheRobot about protocols with associated types.</p>
+
+<p>Feel free to follow me on <a href="https://twitter.com/mecid">Twitter</a> and ask your questions related to this post. Thanks for reading and see you next week!</p>
+
+</article>
+
+
+<aside class="related">
+  <h4>Recent posts</h4>
+  <ul class="related-posts">
+    
+      <li>
+        <a title="Custom accessibility content in SwiftUI" href="/2021/10/06/custom-accessibility-content-in-swiftui/">
+          Custom accessibility content in SwiftUI
+          <small><time datetime="2021-10-06T00:00:00+08:00">06 Oct 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Audio graphs in SwiftUI" href="/2021/09/29/audio-graphs-in-swiftui/">
+          Audio graphs in SwiftUI
+          <small><time datetime="2021-09-29T00:00:00+08:00">29 Sep 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Accessibility focus in SwiftUI" href="/2021/09/23/accessibility-focus-in-swiftui/">
+          Accessibility focus in SwiftUI
+          <small><time datetime="2021-09-23T00:00:00+08:00">23 Sep 2021</time></small>
+        </a>
+      </li>
+    
+  </ul>
+</aside>
+
+
+      </main>
+
+      <footer class="footer">
+          <img class="avatar" alt="mecid" width="100" height="100" data-proofer-ignore="true" src="https://avatars2.githubusercontent.com/mecid?v=3&s=100" srcset="https://avatars2.githubusercontent.com/mecid?v=3&s=100 1x, https://avatars2.githubusercontent.com/mecid?v=3&s=200 2x, https://avatars2.githubusercontent.com/mecid?v=3&s=300 3x, https://avatars2.githubusercontent.com/mecid?v=3&s=400 4x" />
+          <small>Hi there! I am code4you,I like to program, and do some App.</small>
+          <small>I'm a developer</small>
+          <small>Feel free to follow me on <a href="https://github.com/code4you2021">Github</a>.</small>
+        <small>
+          &copy; <time datetime="2021-10-17T11:25:11+08:00">2021</time>. All rights reserved.
+        </small>
+      </footer>
+    </div>
+
+    
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1WQVZK1CR7"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-18491817-18');
+    </script>
+    
+  </body>
+</html>

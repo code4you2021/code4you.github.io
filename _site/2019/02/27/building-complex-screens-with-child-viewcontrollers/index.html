@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" content="swift ios development apple watch iphone ipad swiftui macos uikit dev wwdc tutorial guide redux tea state container" />
+
+  <!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Building complex screens with Child ViewControllers | Code4You</title>
+<meta name="generator" content="Jekyll v3.9.0" />
+<meta property="og:title" content="Building complex screens with Child ViewControllers" />
+<meta name="author" content="Code4You" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Container view controllers are a way to combine the content from multiple ViewControllers into a single user interface. Child ViewControllers are one of the undervalued features of iOS SDK. We use it every day by use of UINavigationController or UITabBarController. Last week we talked about using ViewController containment feature to create FlowControllers. But today we are going to discuss how to use this feature to build complex screens." />
+<meta property="og:description" content="Container view controllers are a way to combine the content from multiple ViewControllers into a single user interface. Child ViewControllers are one of the undervalued features of iOS SDK. We use it every day by use of UINavigationController or UITabBarController. Last week we talked about using ViewController containment feature to create FlowControllers. But today we are going to discuss how to use this feature to build complex screens." />
+<link rel="canonical" href="http://localhost:4000/2019/02/27/building-complex-screens-with-child-viewcontrollers/" />
+<meta property="og:url" content="http://localhost:4000/2019/02/27/building-complex-screens-with-child-viewcontrollers/" />
+<meta property="og:site_name" content="Code4You" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-02-27T00:00:00+08:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Building complex screens with Child ViewControllers" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2019/02/27/building-complex-screens-with-child-viewcontrollers/"},"url":"http://localhost:4000/2019/02/27/building-complex-screens-with-child-viewcontrollers/","author":{"@type":"Person","name":"Code4You"},"headline":"Building complex screens with Child ViewControllers","description":"Container view controllers are a way to combine the content from multiple ViewControllers into a single user interface. Child ViewControllers are one of the undervalued features of iOS SDK. We use it every day by use of UINavigationController or UITabBarController. Last week we talked about using ViewController containment feature to create FlowControllers. But today we are going to discuss how to use this feature to build complex screens.","dateModified":"2019-02-27T00:00:00+08:00","datePublished":"2019-02-27T00:00:00+08:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+  <link rel="alternate" type="application/atom+xml" title="Code4You" href="/feed.xml">
+</head>
+
+
+  <body>
+
+    <div class="container content">
+      <header class="masthead">
+        <nav>
+          <h1 class="masthead-title">
+            <a href="/" title="Home">Code4You</a>
+          </h1>
+          <div>
+            <a href="/categories" title="Categories">Categories</a>
+            <a href="/archive" title="Archive">Archive</a>
+            <a href="/feed.xml" title="Feed">Feed</a>
+          </div>
+        </nav>
+      </header>
+
+      <main>
+        <article class="post">
+  <h2 class="post-title">Building complex screens with Child ViewControllers</h2>
+  <time datetime="2019-02-27T00:00:00+08:00" class="post-date">27 Feb 2019</time>
+  <p>Container view controllers are a way to combine the content from multiple ViewControllers into a single user interface. Child ViewControllers are one of the undervalued features of iOS SDK. We use it every day by use of UINavigationController or UITabBarController. Last week we talked about using ViewController containment feature to create <a href="/2019/02/20/navigation-with-flow-controllers/">FlowControllers</a>. But today we are going to discuss how to use this feature to build complex screens.</p>
+
+<!-- <div class="ads">
+    <span>
+        Why don’t more iOS apps use voice? Machine learning for voice is hard, and using Siri is clunky and rigid. So we open-sourced an iOS library (also Android, Node, Python, & React Native), and built a no-code web tool to make custom wake words, speech recognizers, and AI voices—for all devs! <a href="https://www.spokestack.io/?utm_source=swiftui_weekly&utm_medium=email&utm_campaign=maker_launch_PAID">Try it for free.</a>
+    </span>
+</div> -->
+
+<h4 id="complex-screens">Complex screens</h4>
+<p>CardioBot is Heart Rate tracker app on which I was working last two years. It uses HealthKit to read Heart Rate values, make some calculations and present Heart Rate analysis for every day in a nice way. Here is Day screen of CardioBot app.</p>
+
+<p><img src="/public/cardiobot.jpg" alt="CardioBot" /></p>
+
+<p>Every day has several sections like Average, Summary, Sleep, Workout, Weekly sleep, etc. If I build this screen as a single ViewController for sure, it will be a Massive-View-Controller. Instead, let’s extract every section in separated ViewController and combine them in parent ViewController by using ViewController containment. It gives me the opportunity to make my ViewControllers small and testable. Another achievement here is reusability. I want to use SummaryViewController as Today extension, so extracting it in another ViewController is what I need.</p>
+
+<h4 id="stackviewcontroller">StackViewController</h4>
+<p>Let’s create base ViewController for our day screen. First of all, it should be able to manage the dynamic count of child ViewControllers with the opportunity to scroll the screen if items too many. The second needed feature is the ability to hide/show Child ViewControllers with animation. UIStackView embedded in UIScrollView is the best candidate here. Animating views inside by switching isHidden property is super easy. Another benefit here is support for intrinsicContentSize by UIStackView. We need to add proper constraints to child ViewController’s root view to make it self sizing, and UIStackView will take care of the right positioning of this view.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">import</span> <span class="kt">UIKit</span>
+
+<span class="kd">class</span> <span class="kt">StackViewController</span><span class="p">:</span> <span class="kt">UIViewController</span> <span class="p">{</span>
+    <span class="kd">private</span> <span class="k">let</span> <span class="nv">scrollView</span> <span class="o">=</span> <span class="kt">UIScrollView</span><span class="p">()</span>
+    <span class="kd">private</span> <span class="k">let</span> <span class="nv">stackView</span> <span class="o">=</span> <span class="kt">UIStackView</span><span class="p">()</span>
+
+    <span class="k">override</span> <span class="kd">func</span> <span class="nf">viewDidLoad</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">super</span><span class="o">.</span><span class="nf">viewDidLoad</span><span class="p">()</span>
+        <span class="n">view</span><span class="o">.</span><span class="nf">addSubview</span><span class="p">(</span><span class="n">scrollView</span><span class="p">)</span>
+        <span class="n">scrollView</span><span class="o">.</span><span class="nf">addSubview</span><span class="p">(</span><span class="n">stackView</span><span class="p">)</span>
+        <span class="nf">setupConstraints</span><span class="p">()</span>
+        <span class="n">stackView</span><span class="o">.</span><span class="n">axis</span> <span class="o">=</span> <span class="o">.</span><span class="n">vertical</span>
+    <span class="p">}</span>
+
+    <span class="kd">private</span> <span class="kd">func</span> <span class="nf">setupConstraints</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">scrollView</span><span class="o">.</span><span class="n">translatesAutoresizingMaskIntoConstraints</span> <span class="o">=</span> <span class="kc">false</span>
+        <span class="n">stackView</span><span class="o">.</span><span class="n">translatesAutoresizingMaskIntoConstraints</span> <span class="o">=</span> <span class="kc">false</span>
+
+        <span class="kt">NSLayoutConstraint</span><span class="o">.</span><span class="nf">activate</span><span class="p">([</span>
+            <span class="n">scrollView</span><span class="o">.</span><span class="n">leadingAnchor</span><span class="o">.</span><span class="nf">constraint</span><span class="p">(</span><span class="nv">equalTo</span><span class="p">:</span> <span class="n">view</span><span class="o">.</span><span class="n">safeAreaLayoutGuide</span><span class="o">.</span><span class="n">leadingAnchor</span><span class="p">),</span>
+            <span class="n">scrollView</span><span class="o">.</span><span class="n">trailingAnchor</span><span class="o">.</span><span class="nf">constraint</span><span class="p">(</span><span class="nv">equalTo</span><span class="p">:</span> <span class="n">view</span><span class="o">.</span><span class="n">safeAreaLayoutGuide</span><span class="o">.</span><span class="n">trailingAnchor</span><span class="p">),</span>
+            <span class="n">scrollView</span><span class="o">.</span><span class="n">topAnchor</span><span class="o">.</span><span class="nf">constraint</span><span class="p">(</span><span class="nv">equalTo</span><span class="p">:</span> <span class="n">view</span><span class="o">.</span><span class="n">safeAreaLayoutGuide</span><span class="o">.</span><span class="n">topAnchor</span><span class="p">),</span>
+            <span class="n">scrollView</span><span class="o">.</span><span class="n">bottomAnchor</span><span class="o">.</span><span class="nf">constraint</span><span class="p">(</span><span class="nv">equalTo</span><span class="p">:</span> <span class="n">view</span><span class="o">.</span><span class="n">safeAreaLayoutGuide</span><span class="o">.</span><span class="n">bottomAnchor</span><span class="p">),</span>
+            <span class="n">stackView</span><span class="o">.</span><span class="n">leadingAnchor</span><span class="o">.</span><span class="nf">constraint</span><span class="p">(</span><span class="nv">equalTo</span><span class="p">:</span> <span class="n">scrollView</span><span class="o">.</span><span class="n">leadingAnchor</span><span class="p">),</span>
+            <span class="n">stackView</span><span class="o">.</span><span class="n">trailingAnchor</span><span class="o">.</span><span class="nf">constraint</span><span class="p">(</span><span class="nv">equalTo</span><span class="p">:</span> <span class="n">scrollView</span><span class="o">.</span><span class="n">trailingAnchor</span><span class="p">),</span>
+            <span class="n">stackView</span><span class="o">.</span><span class="n">topAnchor</span><span class="o">.</span><span class="nf">constraint</span><span class="p">(</span><span class="nv">equalTo</span><span class="p">:</span> <span class="n">scrollView</span><span class="o">.</span><span class="n">topAnchor</span><span class="p">),</span>
+            <span class="n">stackView</span><span class="o">.</span><span class="n">bottomAnchor</span><span class="o">.</span><span class="nf">constraint</span><span class="p">(</span><span class="nv">equalTo</span><span class="p">:</span> <span class="n">scrollView</span><span class="o">.</span><span class="n">bottomAnchor</span><span class="p">),</span>
+            <span class="n">stackView</span><span class="o">.</span><span class="n">widthAnchor</span><span class="o">.</span><span class="nf">constraint</span><span class="p">(</span><span class="nv">equalTo</span><span class="p">:</span> <span class="n">view</span><span class="o">.</span><span class="n">safeAreaLayoutGuide</span><span class="o">.</span><span class="n">widthAnchor</span><span class="p">)</span>
+            <span class="p">])</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">extension</span> <span class="kt">StackViewController</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">add</span><span class="p">(</span><span class="n">_</span> <span class="nv">child</span><span class="p">:</span> <span class="kt">UIViewController</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nf">addChild</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
+        <span class="n">stackView</span><span class="o">.</span><span class="nf">addArrangedSubview</span><span class="p">(</span><span class="n">child</span><span class="o">.</span><span class="n">view</span><span class="p">)</span>
+        <span class="n">child</span><span class="o">.</span><span class="nf">didMove</span><span class="p">(</span><span class="nv">toParent</span><span class="p">:</span> <span class="k">self</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">remove</span><span class="p">(</span><span class="n">_</span> <span class="nv">child</span><span class="p">:</span> <span class="kt">UIViewController</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">guard</span> <span class="n">child</span><span class="o">.</span><span class="n">parent</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="k">else</span> <span class="p">{</span>
+            <span class="k">return</span>
+        <span class="p">}</span>
+
+        <span class="n">child</span><span class="o">.</span><span class="nf">willMove</span><span class="p">(</span><span class="nv">toParent</span><span class="p">:</span> <span class="kc">nil</span><span class="p">)</span>
+        <span class="n">stackView</span><span class="o">.</span><span class="nf">removeArrangedSubview</span><span class="p">(</span><span class="n">child</span><span class="o">.</span><span class="n">view</span><span class="p">)</span>
+        <span class="n">child</span><span class="o">.</span><span class="n">view</span><span class="o">.</span><span class="nf">removeFromSuperview</span><span class="p">()</span>
+        <span class="n">child</span><span class="o">.</span><span class="nf">removeFromParent</span><span class="p">()</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>In the example above, I create StackViewController which has UIStackView embedded in UIScrollView. I added all needed constraints to make UIScrollView working correctly with UIStackView and understand its real content size. We also have here two public methods which we will use to add or remove child ViewControllers to UIStackView.</p>
+
+<h4 id="day-screen">Day Screen</h4>
+<p>Now we can implement our Day Screen which extends from StackViewController and populates its view with child ViewControllers. Here is a source code.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="kt">DayViewController</span><span class="p">:</span> <span class="kt">StackViewController</span> <span class="p">{</span>
+    <span class="k">override</span> <span class="kd">func</span> <span class="nf">viewDidLoad</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">super</span><span class="o">.</span><span class="nf">viewDidLoad</span><span class="p">()</span>
+        <span class="nf">setupUI</span><span class="p">()</span>
+    <span class="p">}</span>
+
+    <span class="kd">private</span> <span class="kd">func</span> <span class="nf">setupUI</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">let</span> <span class="nv">today</span> <span class="o">=</span> <span class="kt">Date</span><span class="p">()</span>
+        <span class="k">let</span> <span class="nv">calendarVC</span> <span class="o">=</span> <span class="kt">CalendarViewController</span><span class="p">(</span><span class="nv">date</span><span class="p">:</span> <span class="n">today</span><span class="p">)</span>
+        <span class="n">calendarVC</span><span class="o">.</span><span class="n">delegate</span> <span class="o">=</span> <span class="k">self</span>
+
+        <span class="nf">add</span><span class="p">(</span><span class="n">calendarVC</span><span class="p">)</span>
+        <span class="nf">add</span><span class="p">(</span><span class="kt">SummaryViewController</span><span class="p">(</span><span class="nv">date</span><span class="p">:</span> <span class="n">today</span><span class="p">))</span>
+        <span class="nf">add</span><span class="p">(</span><span class="kt">SleepViewController</span><span class="p">(</span><span class="nv">date</span><span class="p">:</span> <span class="n">today</span><span class="p">))</span>
+        <span class="nf">add</span><span class="p">(</span><span class="kt">WorkoutViewController</span><span class="p">(</span><span class="nv">date</span><span class="p">:</span> <span class="n">today</span><span class="p">))</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">extension</span> <span class="kt">DayViewController</span><span class="p">:</span> <span class="kt">CalendarViewControllDelegate</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">dateSelected</span><span class="p">(</span><span class="n">_</span> <span class="nv">date</span><span class="p">:</span> <span class="kt">Date</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nf">reloadDay</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="n">date</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>As you can see, DayViewController hosts four child ViewControllers. It also acts as a delegate for CalendarViewController, which presents the current week. As soon as any date selected in the calendar, it passes the date via delegate to parent ViewController, which job is asking child ViewControllers to reload data.</p>
+
+<h4 id="conclusion">Conclusion</h4>
+<p>We used to create one ViewController per screen, but sometimes this rule leads to buggy Massive-View-Controllers. Today we discussed how we could break this rule and compose complex screens from as many child ViewControllers as we need.</p>
+
+<p>Feel free to follow me on <a href="https://twitter.com/mecid">Twitter</a> and ask your questions related to this post. Thanks for reading and see you next week!</p>
+
+</article>
+
+
+<aside class="related">
+  <h4>Recent posts</h4>
+  <ul class="related-posts">
+    
+      <li>
+        <a title="Custom accessibility content in SwiftUI" href="/2021/10/06/custom-accessibility-content-in-swiftui/">
+          Custom accessibility content in SwiftUI
+          <small><time datetime="2021-10-06T00:00:00+08:00">06 Oct 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Audio graphs in SwiftUI" href="/2021/09/29/audio-graphs-in-swiftui/">
+          Audio graphs in SwiftUI
+          <small><time datetime="2021-09-29T00:00:00+08:00">29 Sep 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Accessibility focus in SwiftUI" href="/2021/09/23/accessibility-focus-in-swiftui/">
+          Accessibility focus in SwiftUI
+          <small><time datetime="2021-09-23T00:00:00+08:00">23 Sep 2021</time></small>
+        </a>
+      </li>
+    
+  </ul>
+</aside>
+
+
+      </main>
+
+      <footer class="footer">
+          <img class="avatar" alt="mecid" width="100" height="100" data-proofer-ignore="true" src="https://avatars2.githubusercontent.com/mecid?v=3&s=100" srcset="https://avatars2.githubusercontent.com/mecid?v=3&s=100 1x, https://avatars2.githubusercontent.com/mecid?v=3&s=200 2x, https://avatars2.githubusercontent.com/mecid?v=3&s=300 3x, https://avatars2.githubusercontent.com/mecid?v=3&s=400 4x" />
+          <small>Hi there! I am code4you,I like to program, and do some App.</small>
+          <small>I'm a developer</small>
+          <small>Feel free to follow me on <a href="https://github.com/code4you2021">Github</a>.</small>
+        <small>
+          &copy; <time datetime="2021-10-17T11:25:11+08:00">2021</time>. All rights reserved.
+        </small>
+      </footer>
+    </div>
+
+    
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1WQVZK1CR7"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-18491817-18');
+    </script>
+    
+  </body>
+</html>

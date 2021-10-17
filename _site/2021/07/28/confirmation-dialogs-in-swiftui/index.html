@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" content="swift ios development apple watch iphone ipad swiftui macos uikit dev wwdc tutorial guide redux tea state container" />
+
+  <!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Confirmation dialogs in SwiftUI | Code4You</title>
+<meta name="generator" content="Jekyll v3.9.0" />
+<meta property="og:title" content="Confirmation dialogs in SwiftUI" />
+<meta name="author" content="Code4You" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="SwiftUI Release 3 brings a few generic view modifiers that allow us to handle semantically similar operations for different views in the very same way. One of these view modifiers is onSubmit, which we can use to manage both forms and search fields. This week we will talk about another view modifier that SwiftUI provides us to display confirmation dialogs." />
+<meta property="og:description" content="SwiftUI Release 3 brings a few generic view modifiers that allow us to handle semantically similar operations for different views in the very same way. One of these view modifiers is onSubmit, which we can use to manage both forms and search fields. This week we will talk about another view modifier that SwiftUI provides us to display confirmation dialogs." />
+<link rel="canonical" href="http://localhost:4000/2021/07/28/confirmation-dialogs-in-swiftui/" />
+<meta property="og:url" content="http://localhost:4000/2021/07/28/confirmation-dialogs-in-swiftui/" />
+<meta property="og:site_name" content="Code4You" />
+<meta property="og:image" content="http://localhost:4000/public/confirmation0.png" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2021-07-28T00:00:00+08:00" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta property="twitter:image" content="http://localhost:4000/public/confirmation0.png" />
+<meta property="twitter:title" content="Confirmation dialogs in SwiftUI" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2021/07/28/confirmation-dialogs-in-swiftui/"},"url":"http://localhost:4000/2021/07/28/confirmation-dialogs-in-swiftui/","image":"http://localhost:4000/public/confirmation0.png","author":{"@type":"Person","name":"Code4You"},"headline":"Confirmation dialogs in SwiftUI","description":"SwiftUI Release 3 brings a few generic view modifiers that allow us to handle semantically similar operations for different views in the very same way. One of these view modifiers is onSubmit, which we can use to manage both forms and search fields. This week we will talk about another view modifier that SwiftUI provides us to display confirmation dialogs.","dateModified":"2021-07-28T00:00:00+08:00","datePublished":"2021-07-28T00:00:00+08:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+  <link rel="alternate" type="application/atom+xml" title="Code4You" href="/feed.xml">
+</head>
+
+
+  <body>
+
+    <div class="container content">
+      <header class="masthead">
+        <nav>
+          <h1 class="masthead-title">
+            <a href="/" title="Home">Code4You</a>
+          </h1>
+          <div>
+            <a href="/categories" title="Categories">Categories</a>
+            <a href="/archive" title="Archive">Archive</a>
+            <a href="/feed.xml" title="Feed">Feed</a>
+          </div>
+        </nav>
+      </header>
+
+      <main>
+        <article class="post">
+  <h2 class="post-title">Confirmation dialogs in SwiftUI</h2>
+  <time datetime="2021-07-28T00:00:00+08:00" class="post-date">28 Jul 2021</time>
+  <p>SwiftUI Release 3 brings a few generic view modifiers that allow us to handle semantically similar operations for different views in the very same way. One of these view modifiers is <em>onSubmit</em>, which we can use to manage both forms and search fields. This week we will talk about another view modifier that SwiftUI provides us to display confirmation dialogs.</p>
+
+<!-- <div class="ads">
+    <span>
+        Why don’t more iOS apps use voice? Machine learning for voice is hard, and using Siri is clunky and rigid. So we open-sourced an iOS library (also Android, Node, Python, & React Native), and built a no-code web tool to make custom wake words, speech recognizers, and AI voices—for all devs! <a href="https://www.spokestack.io/?utm_source=swiftui_weekly&utm_medium=email&utm_campaign=maker_launch_PAID">Try it for free.</a>
+    </span>
+</div> -->
+
+<p>Confirmation dialog is a widespread UI/UX pattern that we usually use to confirm some dangerous actions in our apps. For example, we might present a confirmation dialog before deleting any sensitive data from the app.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">ContentView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="kd">@StateObject</span> <span class="k">var</span> <span class="nv">viewModel</span> <span class="o">=</span> <span class="kt">ViewModel</span><span class="p">()</span>
+
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">NavigationView</span> <span class="p">{</span>
+            <span class="kt">List</span> <span class="p">{</span>
+                <span class="kt">ForEach</span><span class="p">(</span><span class="n">viewModel</span><span class="o">.</span><span class="n">messages</span><span class="p">,</span> <span class="nv">id</span><span class="p">:</span> <span class="p">\</span><span class="o">.</span><span class="k">self</span><span class="p">)</span> <span class="p">{</span> <span class="n">message</span> <span class="k">in</span>
+                    <span class="kt">Text</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+                        <span class="o">.</span><span class="n">swipeActions</span> <span class="p">{</span>
+                            <span class="kt">Button</span><span class="p">(</span>
+                                <span class="nv">role</span><span class="p">:</span> <span class="o">.</span><span class="n">destructive</span><span class="p">,</span>
+                                <span class="nv">action</span><span class="p">:</span> <span class="p">{</span> 
+                                    <span class="n">withAnimation</span> <span class="p">{</span>
+                                        <span class="n">viewModel</span><span class="o">.</span><span class="nf">delete</span><span class="p">(</span><span class="n">message</span><span class="p">)</span> 
+                                    <span class="p">}</span> 
+                                <span class="p">}</span>
+                            <span class="p">)</span> <span class="p">{</span>
+                                <span class="kt">Image</span><span class="p">(</span><span class="nv">systemName</span><span class="p">:</span> <span class="s">"trash"</span><span class="p">)</span>
+                            <span class="p">}</span>
+                        <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+            <span class="o">.</span><span class="nf">navigationTitle</span><span class="p">(</span><span class="s">"Messages"</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">onAppear</span> <span class="p">{</span> <span class="n">viewModel</span><span class="o">.</span><span class="nf">fetch</span><span class="p">()</span> <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>As you can see in the example above, we have a screen showing a list of messages from the view model. We use swipe actions to provide actions related to a list item. In our case, we display a destructive button that deletes the message as soon as you hit it. Let’s take a look at how we can show confirmation dialog using the new <em>confirmationDialog</em> view modifier.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">ContentView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="kd">@StateObject</span> <span class="k">var</span> <span class="nv">viewModel</span> <span class="o">=</span> <span class="kt">ViewModel</span><span class="p">()</span>
+    <span class="kd">@State</span> <span class="kd">private</span> <span class="k">var</span> <span class="nv">confirmationShown</span> <span class="o">=</span> <span class="kc">false</span>
+
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">NavigationView</span> <span class="p">{</span>
+            <span class="kt">List</span> <span class="p">{</span>
+                <span class="kt">ForEach</span><span class="p">(</span><span class="n">viewModel</span><span class="o">.</span><span class="n">messages</span><span class="p">,</span> <span class="nv">id</span><span class="p">:</span> <span class="p">\</span><span class="o">.</span><span class="k">self</span><span class="p">)</span> <span class="p">{</span> <span class="n">message</span> <span class="k">in</span>
+                    <span class="kt">Text</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+                        <span class="o">.</span><span class="n">swipeActions</span> <span class="p">{</span>
+                            <span class="kt">Button</span><span class="p">(</span>
+                                <span class="nv">role</span><span class="p">:</span> <span class="o">.</span><span class="n">destructive</span><span class="p">,</span>
+                                <span class="nv">action</span><span class="p">:</span> <span class="p">{</span> <span class="n">confirmationShown</span> <span class="o">=</span> <span class="kc">true</span> <span class="p">}</span>
+                            <span class="p">)</span> <span class="p">{</span>
+                                <span class="kt">Image</span><span class="p">(</span><span class="nv">systemName</span><span class="p">:</span> <span class="s">"trash"</span><span class="p">)</span>
+                            <span class="p">}</span>
+                        <span class="p">}</span>
+                        <span class="o">.</span><span class="nf">confirmationDialog</span><span class="p">(</span>
+                            <span class="s">"Are you sure?"</span><span class="p">,</span>
+                             <span class="nv">isPresented</span><span class="p">:</span> <span class="err">$</span><span class="n">confirmationShown</span>
+                        <span class="p">)</span> <span class="p">{</span> 
+                            <span class="kt">Button</span><span class="p">(</span><span class="s">"Yes"</span><span class="p">)</span> <span class="p">{</span>
+                                <span class="n">withAnimation</span> <span class="p">{</span> 
+                                    <span class="n">viewModel</span><span class="o">.</span><span class="nf">delete</span><span class="p">(</span><span class="n">message</span><span class="p">)</span> 
+                                <span class="p">}</span>
+                            <span class="p">}</span>
+                        <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+            <span class="o">.</span><span class="nf">navigationTitle</span><span class="p">(</span><span class="s">"Messages"</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">onAppear</span> <span class="p">{</span> <span class="n">viewModel</span><span class="o">.</span><span class="nf">fetch</span><span class="p">()</span> <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><img src="/public/confirmation0.png" alt="confirmation-dialog" /></p>
+
+<p>We attach the <em>confirmationDialog</em> view modifier to the <em>Text</em> view that we want to delete. It needs a few parameters to display a confirmation dialog.</p>
+<ol>
+  <li>The first one is the title of the particular confirmation dialog. It can be a <em>Text</em> view or <em>LocalizedStringKey</em>.</li>
+  <li>The second one is binding to a boolean value that indicates whenever to present the confirmation dialog.</li>
+  <li>The third one is the <em>@ViewBuilder</em> closure that we can use to provide available actions using button views. Keep in mind that we can use buttons with text only.</li>
+</ol>
+
+<p>You don’t need to provide a cancel button. SwiftUI does it automatically for any confirmation dialog. But you can still offer a button with the cancelation role to replace the default cancel button.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">.</span><span class="nf">confirmationDialog</span><span class="p">(</span><span class="s">"Are you sure?"</span><span class="p">,</span> <span class="nv">isPresented</span><span class="p">:</span> <span class="err">$</span><span class="n">confirmationShown</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kt">Button</span><span class="p">(</span><span class="s">"Yes"</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">withAnimation</span> <span class="p">{</span> 
+            <span class="n">viewModel</span><span class="o">.</span><span class="nf">delete</span><span class="p">(</span><span class="n">message</span><span class="p">)</span> 
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="kt">Button</span><span class="p">(</span><span class="s">"No"</span><span class="p">,</span> <span class="nv">role</span><span class="p">:</span> <span class="o">.</span><span class="n">cancel</span><span class="p">)</span> <span class="p">{}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><img src="/public/confirmation1.png" alt="confirmation-dialog" /></p>
+
+<p>Remember that you don’t need to change the value of binding to false to dismiss a confirmation dialog. SwiftUI dismisses the confirmation dialog as soon as the user hits any of the provided actions.</p>
+
+<p>I should mention that the system can reorder the buttons based on their roles and prominence. SwiftUI uses the higher prominence for the default action. You can make any of the provided actions default using the <em>keyboardShortcut</em> view modifier.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">.</span><span class="nf">confirmationDialog</span><span class="p">(</span><span class="s">"Are you sure?"</span><span class="p">,</span> <span class="nv">isPresented</span><span class="p">:</span> <span class="err">$</span><span class="n">confirmationShown</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kt">Button</span><span class="p">(</span><span class="s">"Yes"</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">withAnimation</span> <span class="p">{</span> 
+            <span class="n">viewModel</span><span class="o">.</span><span class="nf">delete</span><span class="p">(</span><span class="n">message</span><span class="p">)</span> 
+        <span class="p">}</span>
+    <span class="p">}</span><span class="o">.</span><span class="nf">keyboardShortcut</span><span class="p">(</span><span class="o">.</span><span class="n">defaultAction</span><span class="p">)</span>
+
+    <span class="kt">Button</span><span class="p">(</span><span class="s">"No"</span><span class="p">,</span> <span class="nv">role</span><span class="p">:</span> <span class="o">.</span><span class="n">cancel</span><span class="p">)</span> <span class="p">{}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>SwiftUI handles different environments gracefully and displays confirmation dialog as a popover when runs in regular size classes and as an action sheet in compact size classes.</p>
+
+<blockquote>
+  <p>To learn more about popovers and action sheets in SwiftUI, take a look at my <a href="/2019/07/24/alerts-actionsheets-modals-and-popovers-in-swiftui/">“Alerts, Action Sheets, Modals and Popovers in SwiftUI”</a> post.</p>
+</blockquote>
+
+<p>The <em>confirmationDialog</em> view modifier also provides us a way to control the title visibility of the presented dialog. The <em>titleVisibility</em> parameter accepts an instance of <em>Visibility</em> enum with one of the following values: <em>automatic, visible, and hidden</em>.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">.</span><span class="nf">confirmationDialog</span><span class="p">(</span>
+    <span class="s">"Are you sure?"</span><span class="p">,</span>
+    <span class="nv">isPresented</span><span class="p">:</span> <span class="err">$</span><span class="n">confirmationShown</span><span class="p">,</span>
+    <span class="nv">titleVisibility</span><span class="p">:</span> <span class="o">.</span><span class="n">visible</span>
+<span class="p">)</span> <span class="p">{</span>
+    <span class="kt">Button</span><span class="p">(</span><span class="s">"Yes"</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">withAnimation</span> <span class="p">{</span> 
+            <span class="n">viewModel</span><span class="o">.</span><span class="nf">delete</span><span class="p">(</span><span class="n">message</span><span class="p">)</span> 
+        <span class="p">}</span>
+    <span class="p">}</span><span class="o">.</span><span class="nf">keyboardShortcut</span><span class="p">(</span><span class="o">.</span><span class="n">defaultAction</span><span class="p">)</span>
+
+    <span class="kt">Button</span><span class="p">(</span><span class="s">"No"</span><span class="p">,</span> <span class="nv">role</span><span class="p">:</span> <span class="o">.</span><span class="n">cancel</span><span class="p">)</span> <span class="p">{}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>We can also provide an additional message under the title using a message parameter that accepts another <em>@ViewBuilder</em> closure to build a view displaying a custom message.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">.</span><span class="nf">confirmationDialog</span><span class="p">(</span>
+    <span class="s">"Are you sure?"</span><span class="p">,</span>
+    <span class="nv">isPresented</span><span class="p">:</span> <span class="err">$</span><span class="n">confirmationShown</span><span class="p">,</span>
+    <span class="nv">titleVisibility</span><span class="p">:</span> <span class="o">.</span><span class="n">visible</span>
+<span class="p">)</span> <span class="p">{</span>
+    <span class="kt">Button</span><span class="p">(</span><span class="s">"Yes"</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">withAnimation</span> <span class="p">{</span> 
+            <span class="n">viewModel</span><span class="o">.</span><span class="nf">delete</span><span class="p">(</span><span class="n">message</span><span class="p">)</span> 
+        <span class="p">}</span>
+    <span class="p">}</span><span class="o">.</span><span class="nf">keyboardShortcut</span><span class="p">(</span><span class="o">.</span><span class="n">defaultAction</span><span class="p">)</span>
+
+    <span class="kt">Button</span><span class="p">(</span><span class="s">"No"</span><span class="p">,</span> <span class="nv">role</span><span class="p">:</span> <span class="o">.</span><span class="n">cancel</span><span class="p">)</span> <span class="p">{}</span>
+<span class="p">}</span> <span class="nv">message</span><span class="p">:</span> <span class="p">{</span>
+    <span class="kt">Text</span><span class="p">(</span><span class="s">"This action cannot be undone"</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>The <em>confrimationDialog</em> view modifier allows us to provide optional data to pass into <em>@ViewBuilder</em> closures both for message and actions.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">.</span><span class="nf">confirmationDialog</span><span class="p">(</span>
+    <span class="s">"Are you sure?"</span><span class="p">,</span>
+    <span class="nv">isPresented</span><span class="p">:</span> <span class="err">$</span><span class="n">confirmationShown</span><span class="p">,</span>
+    <span class="nv">titleVisibility</span><span class="p">:</span> <span class="o">.</span><span class="n">visible</span><span class="p">,</span>
+    <span class="nv">presenting</span><span class="p">:</span> <span class="n">message</span>
+<span class="p">)</span> <span class="p">{</span> <span class="n">message</span> <span class="k">in</span>
+    <span class="kt">Button</span><span class="p">(</span><span class="s">"Yes, delete: </span><span class="se">\(</span><span class="n">message</span><span class="se">)</span><span class="s">"</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">withAnimation</span> <span class="p">{</span> 
+            <span class="n">viewModel</span><span class="o">.</span><span class="nf">delete</span><span class="p">(</span><span class="n">message</span><span class="p">)</span> 
+        <span class="p">}</span>
+    <span class="p">}</span><span class="o">.</span><span class="nf">keyboardShortcut</span><span class="p">(</span><span class="o">.</span><span class="n">defaultAction</span><span class="p">)</span>
+
+    <span class="kt">Button</span><span class="p">(</span><span class="s">"No"</span><span class="p">,</span> <span class="nv">role</span><span class="p">:</span> <span class="o">.</span><span class="n">cancel</span><span class="p">)</span> <span class="p">{}</span>
+<span class="p">}</span> <span class="nv">message</span><span class="p">:</span> <span class="p">{</span> <span class="n">message</span> <span class="k">in</span>
+    <span class="kt">Text</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p>To learn more about the benefits of <em>ViewBuilder</em> closures in SwiftUI, take a look at my <a href="/2019/12/18/the-power-of-viewbuilder-in-swiftui/">“The power of @ViewBuilder in SwiftUI”</a> post.</p>
+</blockquote>
+
+<p>I love the new <em>confirmationDialog</em> view modifier and the level of flexibility it provides to customize the user experience in our apps. I hope you enjoy the post. Feel free to follow me on <a href="https://twitter.com/mecid">Twitter</a> and ask your questions related to this post. Thanks for reading, and see you next week!</p>
+
+
+</article>
+
+
+<aside class="related">
+  <h4>Recent posts</h4>
+  <ul class="related-posts">
+    
+      <li>
+        <a title="Custom accessibility content in SwiftUI" href="/2021/10/06/custom-accessibility-content-in-swiftui/">
+          Custom accessibility content in SwiftUI
+          <small><time datetime="2021-10-06T00:00:00+08:00">06 Oct 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Audio graphs in SwiftUI" href="/2021/09/29/audio-graphs-in-swiftui/">
+          Audio graphs in SwiftUI
+          <small><time datetime="2021-09-29T00:00:00+08:00">29 Sep 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Accessibility focus in SwiftUI" href="/2021/09/23/accessibility-focus-in-swiftui/">
+          Accessibility focus in SwiftUI
+          <small><time datetime="2021-09-23T00:00:00+08:00">23 Sep 2021</time></small>
+        </a>
+      </li>
+    
+  </ul>
+</aside>
+
+
+      </main>
+
+      <footer class="footer">
+          <img class="avatar" alt="mecid" width="100" height="100" data-proofer-ignore="true" src="https://avatars2.githubusercontent.com/mecid?v=3&s=100" srcset="https://avatars2.githubusercontent.com/mecid?v=3&s=100 1x, https://avatars2.githubusercontent.com/mecid?v=3&s=200 2x, https://avatars2.githubusercontent.com/mecid?v=3&s=300 3x, https://avatars2.githubusercontent.com/mecid?v=3&s=400 4x" />
+          <small>Hi there! I am code4you,I like to program, and do some App.</small>
+          <small>I'm a developer</small>
+          <small>Feel free to follow me on <a href="https://github.com/code4you2021">Github</a>.</small>
+        <small>
+          &copy; <time datetime="2021-10-17T11:25:11+08:00">2021</time>. All rights reserved.
+        </small>
+      </footer>
+    </div>
+
+    
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1WQVZK1CR7"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-18491817-18');
+    </script>
+    
+  </body>
+</html>

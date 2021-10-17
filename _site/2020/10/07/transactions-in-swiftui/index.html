@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" content="swift ios development apple watch iphone ipad swiftui macos uikit dev wwdc tutorial guide redux tea state container" />
+
+  <!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Transactions in SwiftUI | Code4You</title>
+<meta name="generator" content="Jekyll v3.9.0" />
+<meta property="og:title" content="Transactions in SwiftUI" />
+<meta name="author" content="Code4You" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Animations play a vital role in SwiftUI. We saw a lot of examples of complex animations that we can easily implement in SwiftUI. The guidance for building fluid animations in SwiftUI has the only one step: mutate your state, and SwiftUI will automatically animate changes in your views. Today we will talk about transactions, which is a hidden gem of SwiftUI." />
+<meta property="og:description" content="Animations play a vital role in SwiftUI. We saw a lot of examples of complex animations that we can easily implement in SwiftUI. The guidance for building fluid animations in SwiftUI has the only one step: mutate your state, and SwiftUI will automatically animate changes in your views. Today we will talk about transactions, which is a hidden gem of SwiftUI." />
+<link rel="canonical" href="http://localhost:4000/2020/10/07/transactions-in-swiftui/" />
+<meta property="og:url" content="http://localhost:4000/2020/10/07/transactions-in-swiftui/" />
+<meta property="og:site_name" content="Code4You" />
+<meta property="og:image" content="http://localhost:4000/public/swiftui.png" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2020-10-07T00:00:00+08:00" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta property="twitter:image" content="http://localhost:4000/public/swiftui.png" />
+<meta property="twitter:title" content="Transactions in SwiftUI" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2020/10/07/transactions-in-swiftui/"},"url":"http://localhost:4000/2020/10/07/transactions-in-swiftui/","image":"http://localhost:4000/public/swiftui.png","author":{"@type":"Person","name":"Code4You"},"headline":"Transactions in SwiftUI","description":"Animations play a vital role in SwiftUI. We saw a lot of examples of complex animations that we can easily implement in SwiftUI. The guidance for building fluid animations in SwiftUI has the only one step: mutate your state, and SwiftUI will automatically animate changes in your views. Today we will talk about transactions, which is a hidden gem of SwiftUI.","dateModified":"2020-10-07T00:00:00+08:00","datePublished":"2020-10-07T00:00:00+08:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+  <link rel="alternate" type="application/atom+xml" title="Code4You" href="/feed.xml">
+</head>
+
+
+  <body>
+
+    <div class="container content">
+      <header class="masthead">
+        <nav>
+          <h1 class="masthead-title">
+            <a href="/" title="Home">Code4You</a>
+          </h1>
+          <div>
+            <a href="/categories" title="Categories">Categories</a>
+            <a href="/archive" title="Archive">Archive</a>
+            <a href="/feed.xml" title="Feed">Feed</a>
+          </div>
+        </nav>
+      </header>
+
+      <main>
+        <article class="post">
+  <h2 class="post-title">Transactions in SwiftUI</h2>
+  <time datetime="2020-10-07T00:00:00+08:00" class="post-date">07 Oct 2020</time>
+  <p>Animations play a vital role in SwiftUI. We saw a lot of examples of complex animations that we can easily implement in SwiftUI. The guidance for building fluid animations in SwiftUI has the only one step: mutate your state, and SwiftUI will automatically animate changes in your views. Today we will talk about transactions, which is a hidden gem of SwiftUI.</p>
+
+<!-- <div class="ads">
+    <span>
+        Why don’t more iOS apps use voice? Machine learning for voice is hard, and using Siri is clunky and rigid. So we open-sourced an iOS library (also Android, Node, Python, & React Native), and built a no-code web tool to make custom wake words, speech recognizers, and AI voices—for all devs! <a href="https://www.spokestack.io/?utm_source=swiftui_weekly&utm_medium=email&utm_campaign=maker_launch_PAID">Try it for free.</a>
+    </span>
+</div> -->
+
+<h4 id="basics">Basics</h4>
+<p>Transaction is the context of the current state-processing update. SwiftUI creates a transaction for every state change. Transaction contains the animation that SwiftUI will apply during the state change and the property indicating whenever this transaction disables all the animations defined by the child views. Let’s take a look at the quick example.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">import</span> <span class="kt">SwiftUI</span>
+
+<span class="kd">struct</span> <span class="kt">AnimatedView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">scale</span><span class="p">:</span> <span class="kt">CGFloat</span>
+
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">Circle</span><span class="p">()</span>
+            <span class="o">.</span><span class="nf">fill</span><span class="p">(</span><span class="kt">Color</span><span class="o">.</span><span class="n">accentColor</span><span class="p">)</span>
+            <span class="o">.</span><span class="nf">scaleEffect</span><span class="p">(</span><span class="n">scale</span><span class="p">)</span>
+            <span class="o">.</span><span class="nf">animation</span><span class="p">(</span><span class="o">.</span><span class="nf">spring</span><span class="p">())</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>As we know, animation modifier applies animation to all the child views of the applied view. Apple suggests us to use this modifier on leaf views rather than container views. This approach allows us to specify animation only for the views that we need.</p>
+
+<blockquote>
+  <p>To learn more about the animation modifier in Swift, look at my <a href="/2019/06/26/animations-in-swiftui/">“Animations in SwiftUI”</a> post.</p>
+</blockquote>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">ContentView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="kd">@State</span> <span class="kd">private</span> <span class="k">var</span> <span class="nv">scale</span> <span class="o">=</span> <span class="kc">false</span>
+
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">AnimatedView</span><span class="p">(</span><span class="nv">scale</span><span class="p">:</span> <span class="n">scale</span> <span class="p">?</span> <span class="mf">0.5</span> <span class="p">:</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">onTapGesture</span> <span class="p">{</span>
+                <span class="n">scale</span><span class="o">.</span><span class="nf">toggle</span><span class="p">()</span>
+            <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Using an animation modifier on a child view has one downside. We can’t control that animation. For example, we are not able to replace the spring animation with a linear one. This is where we can use transactions to override animations defined in child views.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">ContentView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="kd">@State</span> <span class="kd">private</span> <span class="k">var</span> <span class="nv">scale</span> <span class="o">=</span> <span class="kc">false</span>
+
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">AnimatedView</span><span class="p">(</span><span class="nv">scale</span><span class="p">:</span> <span class="n">scale</span> <span class="p">?</span> <span class="mf">0.5</span> <span class="p">:</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">onTapGesture</span> <span class="p">{</span>
+                <span class="k">var</span> <span class="nv">transaction</span> <span class="o">=</span> <span class="kt">Transaction</span><span class="p">(</span><span class="nv">animation</span><span class="p">:</span> <span class="o">.</span><span class="n">linear</span><span class="p">)</span>
+                <span class="n">transaction</span><span class="o">.</span><span class="n">disablesAnimations</span> <span class="o">=</span> <span class="kc">true</span>
+
+                <span class="nf">withTransaction</span><span class="p">(</span><span class="n">transaction</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="n">scale</span><span class="o">.</span><span class="nf">toggle</span><span class="p">()</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>As you can see in the example above, we use the <em>withTransaction</em> function to wrap our mutations with a custom transaction. The new transaction disables all the animations defined inside a view hierarchy and enables a linear animation.</p>
+
+<h4 id="transaction-modifier">Transaction modifier</h4>
+<p>Now we know how to create a custom transaction for a complete view hierarchy. There is also a way to modify the current transaction for a concrete view using the transaction modifier. Let’s see how we can use it.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">ContentView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="kd">@State</span> <span class="kd">private</span> <span class="k">var</span> <span class="nv">scale</span> <span class="o">=</span> <span class="kc">false</span>
+
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">VStack</span> <span class="p">{</span>
+            <span class="kt">AnimatedView</span><span class="p">(</span><span class="nv">scale</span><span class="p">:</span> <span class="n">scale</span> <span class="p">?</span> <span class="mf">0.5</span> <span class="p">:</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">transaction</span> <span class="p">{</span> <span class="n">transaction</span> <span class="k">in</span>
+                    <span class="n">transaction</span><span class="o">.</span><span class="n">animation</span> <span class="o">=</span> <span class="o">.</span><span class="nf">spring</span><span class="p">()</span>
+                <span class="p">}</span>
+            <span class="kt">AnimatedView</span><span class="p">(</span><span class="nv">scale</span><span class="p">:</span> <span class="n">scale</span> <span class="p">?</span> <span class="mf">0.5</span> <span class="p">:</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">transaction</span> <span class="p">{</span> <span class="n">transaction</span> <span class="k">in</span>
+                    <span class="n">transaction</span><span class="o">.</span><span class="n">disablesAnimations</span> <span class="o">=</span> <span class="kc">true</span>
+                <span class="p">}</span>
+        <span class="p">}</span><span class="o">.</span><span class="n">onTapGesture</span> <span class="p">{</span>
+            <span class="n">scale</span><span class="o">.</span><span class="nf">toggle</span><span class="p">()</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>The transaction modifier accepts a closure with the <em>inout</em> instance of <em>Transaction</em> struct. We can modify the current transaction inside this closure as we need it. In the example above, we completely disable animations for one view and replace animation for another view.</p>
+
+<h4 id="transactions-during-gesture-updates">Transactions during gesture updates</h4>
+<p>You can find the usage of transactions across many APIs in SwiftUI. For example, you can modify the transaction during gesture updates. It works similarly to the transaction modifier.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">ContentView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="kd">@GestureState</span> <span class="kd">private</span> <span class="k">var</span> <span class="nv">offset</span><span class="p">:</span> <span class="kt">CGSize</span> <span class="o">=</span> <span class="o">.</span><span class="n">zero</span>
+
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">Circle</span><span class="p">()</span>
+            <span class="o">.</span><span class="nf">frame</span><span class="p">(</span><span class="nv">width</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span> <span class="nv">height</span><span class="p">:</span> <span class="mi">100</span><span class="p">)</span>
+            <span class="o">.</span><span class="nf">offset</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span>
+            <span class="o">.</span><span class="nf">gesture</span><span class="p">(</span>
+                <span class="kt">DragGesture</span><span class="p">()</span>
+                    <span class="o">.</span><span class="nf">updating</span><span class="p">(</span><span class="err">$</span><span class="n">offset</span><span class="p">)</span> <span class="p">{</span> <span class="n">value</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">transaction</span> <span class="k">in</span>
+                        <span class="n">state</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">translation</span>
+                        <span class="n">transaction</span><span class="o">.</span><span class="n">animation</span> <span class="o">=</span> <span class="o">.</span><span class="nf">interactiveSpring</span><span class="p">()</span>
+                    <span class="p">}</span>
+            <span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p>To learn more about building interactive views, look at my <a href="/2019/07/10/gestures-in-swiftui/">“Gestures in SwiftUI”</a> post.</p>
+</blockquote>
+
+<h4 id="transactions-in-bindings">Transactions in bindings</h4>
+<p>You can also provide a custom transaction during binding updates using the <em>transaction function</em> on a binding.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">ContentView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="kd">@State</span> <span class="kd">private</span> <span class="k">var</span> <span class="nv">scale</span> <span class="o">=</span> <span class="kc">false</span>
+
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="c1">// ...</span>
+    <span class="p">}</span>
+
+    <span class="kd">private</span> <span class="k">var</span> <span class="nv">animatedBinding</span><span class="p">:</span> <span class="kt">Binding</span><span class="o">&lt;</span><span class="kt">Bool</span><span class="o">&gt;</span> <span class="p">{</span>
+        <span class="k">var</span> <span class="nv">transaction</span> <span class="o">=</span> <span class="kt">Transaction</span><span class="p">(</span><span class="nv">animation</span><span class="p">:</span> <span class="o">.</span><span class="nf">interactiveSpring</span><span class="p">())</span>
+        <span class="n">transaction</span><span class="o">.</span><span class="n">disablesAnimations</span> <span class="o">=</span> <span class="kc">true</span>
+        <span class="k">return</span> <span class="err">$</span><span class="n">scale</span><span class="o">.</span><span class="nf">transaction</span><span class="p">(</span><span class="n">transaction</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p>To learn more about features provided by bindings, look at my <a href="/2020/04/08/binding-in-swiftui/">“Binding in SwiftUI”</a> post.</p>
+</blockquote>
+
+<h4 id="conclusion">Conclusion</h4>
+<p>Today we learned all about transactions in SwiftUI. Understanding transactions opens new doors for building powerful and reusable view components in SwiftUI. I hope you enjoy the post. Feel free to follow me on <a href="https://twitter.com/mecid">Twitter</a> and ask your questions related to this article. Thanks for reading, and see you next week!</p>
+
+</article>
+
+
+<aside class="related">
+  <h4>Recent posts</h4>
+  <ul class="related-posts">
+    
+      <li>
+        <a title="Custom accessibility content in SwiftUI" href="/2021/10/06/custom-accessibility-content-in-swiftui/">
+          Custom accessibility content in SwiftUI
+          <small><time datetime="2021-10-06T00:00:00+08:00">06 Oct 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Audio graphs in SwiftUI" href="/2021/09/29/audio-graphs-in-swiftui/">
+          Audio graphs in SwiftUI
+          <small><time datetime="2021-09-29T00:00:00+08:00">29 Sep 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Accessibility focus in SwiftUI" href="/2021/09/23/accessibility-focus-in-swiftui/">
+          Accessibility focus in SwiftUI
+          <small><time datetime="2021-09-23T00:00:00+08:00">23 Sep 2021</time></small>
+        </a>
+      </li>
+    
+  </ul>
+</aside>
+
+
+      </main>
+
+      <footer class="footer">
+          <img class="avatar" alt="mecid" width="100" height="100" data-proofer-ignore="true" src="https://avatars2.githubusercontent.com/mecid?v=3&s=100" srcset="https://avatars2.githubusercontent.com/mecid?v=3&s=100 1x, https://avatars2.githubusercontent.com/mecid?v=3&s=200 2x, https://avatars2.githubusercontent.com/mecid?v=3&s=300 3x, https://avatars2.githubusercontent.com/mecid?v=3&s=400 4x" />
+          <small>Hi there! I am code4you,I like to program, and do some App.</small>
+          <small>I'm a developer</small>
+          <small>Feel free to follow me on <a href="https://github.com/code4you2021">Github</a>.</small>
+        <small>
+          &copy; <time datetime="2021-10-17T11:25:11+08:00">2021</time>. All rights reserved.
+        </small>
+      </footer>
+    </div>
+
+    
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1WQVZK1CR7"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-18491817-18');
+    </script>
+    
+  </body>
+</html>

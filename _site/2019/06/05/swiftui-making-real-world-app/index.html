@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" content="swift ios development apple watch iphone ipad swiftui macos uikit dev wwdc tutorial guide redux tea state container" />
+
+  <!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Making real-world app with SwiftUI | Code4You</title>
+<meta name="generator" content="Jekyll v3.9.0" />
+<meta property="og:title" content="Making real-world app with SwiftUI" />
+<meta name="author" content="Code4You" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="That is WWDC week: everybody is so excited about so many new things like SwiftUI, Dark Mode, updateable Core ML models, etc. I will try to cover all the new stuff during the upcoming weeks. Let’s start with SwiftUI. SwiftUI is an entirely new approach to building apps for the Apple ecosystem." />
+<meta property="og:description" content="That is WWDC week: everybody is so excited about so many new things like SwiftUI, Dark Mode, updateable Core ML models, etc. I will try to cover all the new stuff during the upcoming weeks. Let’s start with SwiftUI. SwiftUI is an entirely new approach to building apps for the Apple ecosystem." />
+<link rel="canonical" href="http://localhost:4000/2019/06/05/swiftui-making-real-world-app/" />
+<meta property="og:url" content="http://localhost:4000/2019/06/05/swiftui-making-real-world-app/" />
+<meta property="og:site_name" content="Code4You" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-06-05T00:00:00+08:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Making real-world app with SwiftUI" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2019/06/05/swiftui-making-real-world-app/"},"url":"http://localhost:4000/2019/06/05/swiftui-making-real-world-app/","author":{"@type":"Person","name":"Code4You"},"headline":"Making real-world app with SwiftUI","description":"That is WWDC week: everybody is so excited about so many new things like SwiftUI, Dark Mode, updateable Core ML models, etc. I will try to cover all the new stuff during the upcoming weeks. Let’s start with SwiftUI. SwiftUI is an entirely new approach to building apps for the Apple ecosystem.","dateModified":"2019-06-05T00:00:00+08:00","datePublished":"2019-06-05T00:00:00+08:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+  <link rel="alternate" type="application/atom+xml" title="Code4You" href="/feed.xml">
+</head>
+
+
+  <body>
+
+    <div class="container content">
+      <header class="masthead">
+        <nav>
+          <h1 class="masthead-title">
+            <a href="/" title="Home">Code4You</a>
+          </h1>
+          <div>
+            <a href="/categories" title="Categories">Categories</a>
+            <a href="/archive" title="Archive">Archive</a>
+            <a href="/feed.xml" title="Feed">Feed</a>
+          </div>
+        </nav>
+      </header>
+
+      <main>
+        <article class="post">
+  <h2 class="post-title">Making real-world app with SwiftUI</h2>
+  <time datetime="2019-06-05T00:00:00+08:00" class="post-date">05 Jun 2019</time>
+  <p>That is WWDC week: everybody is so excited about so many new things like SwiftUI, Dark Mode, updateable Core ML models, etc. I will try to cover all the new stuff during the upcoming weeks. Let’s start with SwiftUI. SwiftUI is an entirely new approach to building apps for the Apple ecosystem.</p>
+
+<!-- <div class="ads">
+    <span>
+        Why don’t more iOS apps use voice? Machine learning for voice is hard, and using Siri is clunky and rigid. So we open-sourced an iOS library (also Android, Node, Python, & React Native), and built a no-code web tool to make custom wake words, speech recognizers, and AI voices—for all devs! <a href="https://www.spokestack.io/?utm_source=swiftui_weekly&utm_medium=email&utm_campaign=maker_launch_PAID">Try it for free.</a>
+    </span>
+</div> -->
+
+<p>SwiftUI is a declarative Component-Oriented framework. You have to forget about MVC where you have controllers mediating between view and model. All we have in SwiftUI is a state and view derived from the state. As soon as your state changes SwiftUI rebuild UI for that state changes. Apple team did an excellent job by providing so beautiful <a href="https://developer.apple.com/tutorials/swiftui/">tutorial page</a> for SwiftUI. It covers a lot of stuff like Layout, Interfacing with UIKit, etc.</p>
+
+<p>I will try to show you real-world app example written entirely in SwiftUI. Let’s build an app searching for Github repos. We need a screen with a text field for typing a query and a list of repos which comes from the search query. I assume that you have already read the SwiftUI documentation because I’m not going to describe basics, I will try to show something that documentation didn’t covers.</p>
+
+<p>Let’s start by building the <em>GithubService</em> class, which creates a search request and Repo struct, which represents a Github repository.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">Repo</span><span class="p">:</span> <span class="kt">Decodable</span><span class="p">,</span> <span class="kt">Identifiable</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">id</span><span class="p">:</span> <span class="kt">Int</span>
+    <span class="k">let</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span>
+    <span class="k">let</span> <span class="nv">description</span><span class="p">:</span> <span class="kt">String</span>
+<span class="p">}</span>
+
+<span class="kd">struct</span> <span class="kt">SearchResponse</span><span class="p">:</span> <span class="kt">Decodable</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">items</span><span class="p">:</span> <span class="p">[</span><span class="kt">Repo</span><span class="p">]</span>
+<span class="p">}</span>
+
+<span class="kd">class</span> <span class="kt">GithubService</span> <span class="p">{</span>
+    <span class="kd">private</span> <span class="k">let</span> <span class="nv">session</span><span class="p">:</span> <span class="kt">URLSession</span>
+    <span class="kd">private</span> <span class="k">let</span> <span class="nv">decoder</span><span class="p">:</span> <span class="kt">JSONDecoder</span>
+
+    <span class="nf">init</span><span class="p">(</span><span class="nv">session</span><span class="p">:</span> <span class="kt">URLSession</span> <span class="o">=</span> <span class="o">.</span><span class="n">shared</span><span class="p">,</span> <span class="nv">decoder</span><span class="p">:</span> <span class="kt">JSONDecoder</span> <span class="o">=</span> <span class="o">.</span><span class="nf">init</span><span class="p">())</span> <span class="p">{</span>
+        <span class="k">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">session</span>
+        <span class="k">self</span><span class="o">.</span><span class="n">decoder</span> <span class="o">=</span> <span class="n">decoder</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">search</span><span class="p">(</span><span class="n">matching</span> <span class="nv">query</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">handler</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">(</span><span class="kt">Result</span><span class="o">&lt;</span><span class="p">[</span><span class="kt">Repo</span><span class="p">],</span> <span class="kt">Error</span><span class="o">&gt;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">guard</span>
+            <span class="k">var</span> <span class="nv">urlComponents</span> <span class="o">=</span> <span class="kt">URLComponents</span><span class="p">(</span><span class="nv">string</span><span class="p">:</span> <span class="s">"https://api.github.com/search/repositories"</span><span class="p">)</span>
+            <span class="k">else</span> <span class="p">{</span> <span class="nf">preconditionFailure</span><span class="p">(</span><span class="s">"Can't create url components..."</span><span class="p">)</span> <span class="p">}</span>
+
+        <span class="n">urlComponents</span><span class="o">.</span><span class="n">queryItems</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="kt">URLQueryItem</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="s">"q"</span><span class="p">,</span> <span class="nv">value</span><span class="p">:</span> <span class="n">query</span><span class="p">)</span>
+        <span class="p">]</span>
+
+        <span class="k">guard</span>
+            <span class="k">let</span> <span class="nv">url</span> <span class="o">=</span> <span class="n">urlComponents</span><span class="o">.</span><span class="n">url</span>
+            <span class="k">else</span> <span class="p">{</span> <span class="nf">preconditionFailure</span><span class="p">(</span><span class="s">"Can't create url from url components..."</span><span class="p">)</span> <span class="p">}</span>
+
+        <span class="n">session</span><span class="o">.</span><span class="nf">dataTask</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="n">url</span><span class="p">)</span> <span class="p">{</span> <span class="p">[</span><span class="k">weak</span> <span class="k">self</span><span class="p">]</span> <span class="n">data</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">error</span> <span class="k">in</span>
+            <span class="k">if</span> <span class="k">let</span> <span class="nv">error</span> <span class="o">=</span> <span class="n">error</span> <span class="p">{</span>
+                <span class="nf">handler</span><span class="p">(</span><span class="o">.</span><span class="nf">failure</span><span class="p">(</span><span class="n">error</span><span class="p">))</span>
+            <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+                <span class="k">do</span> <span class="p">{</span>
+                    <span class="k">let</span> <span class="nv">data</span> <span class="o">=</span> <span class="n">data</span> <span class="p">??</span> <span class="kt">Data</span><span class="p">()</span>
+                    <span class="k">let</span> <span class="nv">response</span> <span class="o">=</span> <span class="k">try</span> <span class="k">self</span><span class="p">?</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="nf">decode</span><span class="p">(</span><span class="kt">SearchResponse</span><span class="o">.</span><span class="k">self</span><span class="p">,</span> <span class="nv">from</span><span class="p">:</span> <span class="n">data</span><span class="p">)</span>
+                    <span class="nf">handler</span><span class="p">(</span><span class="o">.</span><span class="nf">success</span><span class="p">(</span><span class="n">response</span><span class="p">?</span><span class="o">.</span><span class="n">items</span> <span class="p">??</span> <span class="p">[]))</span>
+                <span class="p">}</span> <span class="k">catch</span> <span class="p">{</span>
+                    <span class="nf">handler</span><span class="p">(</span><span class="o">.</span><span class="nf">failure</span><span class="p">(</span><span class="n">error</span><span class="p">))</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span><span class="o">.</span><span class="nf">resume</span><span class="p">()</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Our <em>Repo</em> struct has only a few fields, but it is enough for our sample. If we want to use our <em>Repo</em> struct as the model which should be used by SwiftUI to build a View it has to conform to <em>Identifiable</em> protocol. The only requirement of <em>Identifiable</em> protocol is id property, which has to be a <em>Hashable</em> value.</p>
+
+<p>Now we can start implementing view which represents <em>Repo</em> row in our list of repos. We will use a vertical stack with two text labels.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">RepoRow</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">repo</span><span class="p">:</span> <span class="kt">Repo</span>
+
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">VStack</span><span class="p">(</span><span class="nv">alignment</span><span class="p">:</span> <span class="o">.</span><span class="n">leading</span><span class="p">)</span> <span class="p">{</span>
+            <span class="kt">Text</span><span class="p">(</span><span class="n">repo</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                <span class="o">.</span><span class="nf">font</span><span class="p">(</span><span class="o">.</span><span class="n">headline</span><span class="p">)</span>
+            <span class="kt">Text</span><span class="p">(</span><span class="n">repo</span><span class="o">.</span><span class="n">description</span><span class="p">)</span>
+                <span class="o">.</span><span class="nf">font</span><span class="p">(</span><span class="o">.</span><span class="n">subheadline</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Let’s move to our SearchView which describes entire the screen.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">SearchView</span> <span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="kd">@State</span> <span class="kd">private</span> <span class="k">var</span> <span class="nv">query</span><span class="p">:</span> <span class="kt">String</span> <span class="o">=</span> <span class="s">"Swift"</span>
+    <span class="kd">@EnvironmentObject</span> <span class="k">var</span> <span class="nv">repoStore</span><span class="p">:</span> <span class="kt">ReposStore</span>
+
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">NavigationView</span> <span class="p">{</span>
+            <span class="kt">List</span> <span class="p">{</span>
+                <span class="kt">TextField</span><span class="p">(</span><span class="s">"Type something..."</span><span class="p">,</span> <span class="nv">text</span><span class="p">:</span> <span class="err">$</span><span class="n">query</span><span class="p">,</span> <span class="nv">onCommit</span><span class="p">:</span> <span class="n">fetch</span><span class="p">)</span>
+                <span class="kt">ForEach</span><span class="p">(</span><span class="n">repoStore</span><span class="o">.</span><span class="n">repos</span><span class="p">)</span> <span class="p">{</span> <span class="n">repo</span> <span class="k">in</span>
+                    <span class="kt">RepoRow</span><span class="p">(</span><span class="nv">repo</span><span class="p">:</span> <span class="n">repo</span><span class="p">)</span>
+                <span class="p">}</span>
+            <span class="p">}</span><span class="o">.</span><span class="nf">navigationBarTitle</span><span class="p">(</span><span class="kt">Text</span><span class="p">(</span><span class="s">"Search"</span><span class="p">))</span>
+        <span class="p">}</span><span class="o">.</span><span class="nf">onAppear</span><span class="p">(</span><span class="nv">perform</span><span class="p">:</span> <span class="n">fetch</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="kd">private</span> <span class="kd">func</span> <span class="nf">fetch</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">repoStore</span><span class="o">.</span><span class="nf">fetch</span><span class="p">(</span><span class="nv">matching</span><span class="p">:</span> <span class="n">query</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Here we have a query field which is marked as <em>@State</em>. It means that this view is derived from this state, and as soon as state changes, SwiftUI rebuilds the view. SwiftUI uses diffing algorithm to understand changes and update only corresponding views. SwiftUI stores all the fields marked as <em>@State</em> in special separated memory, where only corresponded view can access and update them. <em>@State</em> is a new Swift feature called Property Wrapper, more about this feature you can read in <a href="https://github.com/apple/swift-evolution/blob/master/proposals/0258-property-delegates.md">the proposal</a>. The exciting aspect is the usage of <em>$query</em>, It means to get a reference for property wrapper, not value itself. We use it to connect <em>TextField</em> and <em>query</em> variable in two way binding.</p>
+
+<p>Another interesting fact here is <em>@EnvironmentObject</em>. It is a part of feature called <em>Environment</em>. You can populate your <em>Environment</em> with all needed service classes and then access them from any view inside that <em>Environment</em>. The <em>Environment</em> is the right way of Dependency Injection with SwiftUI.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">import</span> <span class="kt">Foundation</span>
+<span class="kd">import</span> <span class="kt">Combine</span>
+
+<span class="kd">final</span> <span class="kd">class</span> <span class="kt">ReposStore</span><span class="p">:</span> <span class="kt">ObservableObject</span> <span class="p">{</span>
+    <span class="kd">@Published</span> <span class="kd">private(set)</span> <span class="k">var</span> <span class="nv">repos</span><span class="p">:</span> <span class="p">[</span><span class="kt">Repo</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="kd">private</span> <span class="k">let</span> <span class="nv">service</span><span class="p">:</span> <span class="kt">GithubService</span>
+    <span class="nf">init</span><span class="p">(</span><span class="nv">service</span><span class="p">:</span> <span class="kt">GithubService</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">self</span><span class="o">.</span><span class="n">service</span> <span class="o">=</span> <span class="n">service</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">fetch</span><span class="p">(</span><span class="n">matching</span> <span class="nv">query</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">service</span><span class="o">.</span><span class="nf">search</span><span class="p">(</span><span class="nv">matching</span><span class="p">:</span> <span class="n">query</span><span class="p">)</span> <span class="p">{</span> <span class="p">[</span><span class="k">weak</span> <span class="k">self</span><span class="p">]</span> <span class="n">result</span> <span class="k">in</span>
+            <span class="kt">DispatchQueue</span><span class="o">.</span><span class="n">main</span><span class="o">.</span><span class="n">async</span> <span class="p">{</span>
+                <span class="k">switch</span> <span class="n">result</span> <span class="p">{</span>
+                <span class="k">case</span> <span class="o">.</span><span class="nf">success</span><span class="p">(</span><span class="k">let</span> <span class="nv">repos</span><span class="p">):</span> <span class="k">self</span><span class="p">?</span><span class="o">.</span><span class="n">repos</span> <span class="o">=</span> <span class="n">repos</span>
+                <span class="k">case</span> <span class="o">.</span><span class="nv">failure</span><span class="p">:</span> <span class="k">self</span><span class="p">?</span><span class="o">.</span><span class="n">repos</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><em>ReposStore</em> class should conform <em>ObservableObject</em> protocol. It makes possible to use it inside <em>Environment</em> and rebuild view as soon as any property marked as <em>@Published</em> changes.</p>
+
+<p>The main difference between <em>@State</em> and <em>@EnvironmentObject</em> is that <em>@State</em> is accessible only to a particular view, in opposite <em>@EnvironmentObject</em> available for every view inside the <em>Environment</em>. But both of them used by SwiftUI to track changes and rebuild views as soon as changes appear.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="kt">SceneDelegate</span><span class="p">:</span> <span class="kt">UIResponder</span><span class="p">,</span> <span class="kt">UIWindowSceneDelegate</span> <span class="p">{</span>
+
+    <span class="k">var</span> <span class="nv">window</span><span class="p">:</span> <span class="kt">UIWindow</span><span class="p">?</span>
+
+    <span class="kd">func</span> <span class="nf">scene</span><span class="p">(</span><span class="n">_</span> <span class="nv">scene</span><span class="p">:</span> <span class="kt">UIScene</span><span class="p">,</span> <span class="n">willConnectTo</span> <span class="nv">session</span><span class="p">:</span> <span class="kt">UISceneSession</span><span class="p">,</span> <span class="n">options</span> <span class="nv">connectionOptions</span><span class="p">:</span> <span class="kt">UIScene</span><span class="o">.</span><span class="kt">ConnectionOptions</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">let</span> <span class="nv">window</span> <span class="o">=</span> <span class="kt">UIWindow</span><span class="p">(</span><span class="nv">frame</span><span class="p">:</span> <span class="kt">UIScreen</span><span class="o">.</span><span class="n">main</span><span class="o">.</span><span class="n">bounds</span><span class="p">)</span>
+        <span class="k">let</span> <span class="nv">store</span> <span class="o">=</span> <span class="kt">ReposStore</span><span class="p">(</span><span class="nv">service</span><span class="p">:</span> <span class="o">.</span><span class="nf">init</span><span class="p">())</span>
+        <span class="n">window</span><span class="o">.</span><span class="n">rootViewController</span> <span class="o">=</span> <span class="kt">UIHostingController</span><span class="p">(</span>
+            <span class="nv">rootView</span><span class="p">:</span> <span class="kt">SearchView</span><span class="p">()</span><span class="o">.</span><span class="nf">environmentObject</span><span class="p">(</span><span class="n">store</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">self</span><span class="o">.</span><span class="n">window</span> <span class="o">=</span> <span class="n">window</span>
+        <span class="n">window</span><span class="o">.</span><span class="nf">makeKeyAndVisible</span><span class="p">()</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>And this is how we can start our SwiftUI app with defined <em>Environment</em>.</p>
+
+<h4 id="conclusion">Conclusion</h4>
+<p>This week we talked about an entirely new approach in the iOS development world. I will try to cover more WWDC topics in the upcoming weeks. Feel free to follow me on <a href="https://twitter.com/mecid">Twitter</a> and ask your questions related to this post. Thanks for reading and see you next week!</p>
+
+</article>
+
+
+<aside class="related">
+  <h4>Recent posts</h4>
+  <ul class="related-posts">
+    
+      <li>
+        <a title="Custom accessibility content in SwiftUI" href="/2021/10/06/custom-accessibility-content-in-swiftui/">
+          Custom accessibility content in SwiftUI
+          <small><time datetime="2021-10-06T00:00:00+08:00">06 Oct 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Audio graphs in SwiftUI" href="/2021/09/29/audio-graphs-in-swiftui/">
+          Audio graphs in SwiftUI
+          <small><time datetime="2021-09-29T00:00:00+08:00">29 Sep 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Accessibility focus in SwiftUI" href="/2021/09/23/accessibility-focus-in-swiftui/">
+          Accessibility focus in SwiftUI
+          <small><time datetime="2021-09-23T00:00:00+08:00">23 Sep 2021</time></small>
+        </a>
+      </li>
+    
+  </ul>
+</aside>
+
+
+      </main>
+
+      <footer class="footer">
+          <img class="avatar" alt="mecid" width="100" height="100" data-proofer-ignore="true" src="https://avatars2.githubusercontent.com/mecid?v=3&s=100" srcset="https://avatars2.githubusercontent.com/mecid?v=3&s=100 1x, https://avatars2.githubusercontent.com/mecid?v=3&s=200 2x, https://avatars2.githubusercontent.com/mecid?v=3&s=300 3x, https://avatars2.githubusercontent.com/mecid?v=3&s=400 4x" />
+          <small>Hi there! I am code4you,I like to program, and do some App.</small>
+          <small>I'm a developer</small>
+          <small>Feel free to follow me on <a href="https://github.com/code4you2021">Github</a>.</small>
+        <small>
+          &copy; <time datetime="2021-10-17T11:25:11+08:00">2021</time>. All rights reserved.
+        </small>
+      </footer>
+    </div>
+
+    
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1WQVZK1CR7"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-18491817-18');
+    </script>
+    
+  </body>
+</html>

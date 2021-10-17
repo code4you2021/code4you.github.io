@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" content="swift ios development apple watch iphone ipad swiftui macos uikit dev wwdc tutorial guide redux tea state container" />
+
+  <!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Mastering ScrollView in SwiftUI | Code4You</title>
+<meta name="generator" content="Jekyll v3.9.0" />
+<meta property="og:title" content="Mastering ScrollView in SwiftUI" />
+<meta name="author" content="Code4You" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="We had the scroll view from the very first version of SwiftUI. It was quite limited. But this year changed everything when Apple released ScrollViewReader during WWDC 20. This week we will learn all about scroll views in SwiftUI. We will learn how to scroll to the particular position and read the current offset of scroll view content." />
+<meta property="og:description" content="We had the scroll view from the very first version of SwiftUI. It was quite limited. But this year changed everything when Apple released ScrollViewReader during WWDC 20. This week we will learn all about scroll views in SwiftUI. We will learn how to scroll to the particular position and read the current offset of scroll view content." />
+<link rel="canonical" href="http://localhost:4000/2020/09/24/mastering-scrollview-in-swiftui/" />
+<meta property="og:url" content="http://localhost:4000/2020/09/24/mastering-scrollview-in-swiftui/" />
+<meta property="og:site_name" content="Code4You" />
+<meta property="og:image" content="http://localhost:4000/public/wwdc20.jpg" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2020-09-24T00:00:00+08:00" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta property="twitter:image" content="http://localhost:4000/public/wwdc20.jpg" />
+<meta property="twitter:title" content="Mastering ScrollView in SwiftUI" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2020/09/24/mastering-scrollview-in-swiftui/"},"url":"http://localhost:4000/2020/09/24/mastering-scrollview-in-swiftui/","image":"http://localhost:4000/public/wwdc20.jpg","author":{"@type":"Person","name":"Code4You"},"headline":"Mastering ScrollView in SwiftUI","description":"We had the scroll view from the very first version of SwiftUI. It was quite limited. But this year changed everything when Apple released ScrollViewReader during WWDC 20. This week we will learn all about scroll views in SwiftUI. We will learn how to scroll to the particular position and read the current offset of scroll view content.","dateModified":"2020-09-24T00:00:00+08:00","datePublished":"2020-09-24T00:00:00+08:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+  <link rel="alternate" type="application/atom+xml" title="Code4You" href="/feed.xml">
+</head>
+
+
+  <body>
+
+    <div class="container content">
+      <header class="masthead">
+        <nav>
+          <h1 class="masthead-title">
+            <a href="/" title="Home">Code4You</a>
+          </h1>
+          <div>
+            <a href="/categories" title="Categories">Categories</a>
+            <a href="/archive" title="Archive">Archive</a>
+            <a href="/feed.xml" title="Feed">Feed</a>
+          </div>
+        </nav>
+      </header>
+
+      <main>
+        <article class="post">
+  <h2 class="post-title">Mastering ScrollView in SwiftUI</h2>
+  <time datetime="2020-09-24T00:00:00+08:00" class="post-date">24 Sep 2020</time>
+  <p>We had the scroll view from the very first version of SwiftUI. It was quite limited. But this year changed everything when Apple released <em>ScrollViewReader</em> during WWDC 20. This week we will learn all about scroll views in SwiftUI. We will learn how to scroll to the particular position and read the current offset of scroll view content.</p>
+
+<!-- <div class="ads">
+    <span>
+        Why don’t more iOS apps use voice? Machine learning for voice is hard, and using Siri is clunky and rigid. So we open-sourced an iOS library (also Android, Node, Python, & React Native), and built a no-code web tool to make custom wake words, speech recognizers, and AI voices—for all devs! <a href="https://www.spokestack.io/?utm_source=swiftui_weekly&utm_medium=email&utm_campaign=maker_launch_PAID">Try it for free.</a>
+    </span>
+</div> -->
+
+<h4 id="basics">Basics</h4>
+<p>The usage of a scroll view is pretty simple. You create a scroll view and pass the content inside a <em>ViewBuilder</em> closure. Let’s take a look at the first example.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">import</span> <span class="kt">SwiftUI</span>
+
+<span class="kd">struct</span> <span class="kt">ContentView1</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">ScrollView</span> <span class="p">{</span>
+            <span class="kt">ForEach</span><span class="p">(</span><span class="mi">0</span><span class="o">..&lt;</span><span class="mi">100</span><span class="p">)</span> <span class="p">{</span> <span class="n">index</span> <span class="k">in</span>
+                <span class="kt">Text</span><span class="p">(</span><span class="kt">String</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>We have a few parameters to control the scroll view behavior. We can set the axis of the scroll. It can be horizontal, vertical, or both. Another parameter allows us to show or hide the scrolling indicators.</p>
+
+<h4 id="scrollviewreader">ScrollViewReader</h4>
+<p>During WWDC20, Apple released <em>ScrollViewReader</em> that allows us to scroll to a particular position. Let’s take a look at how we can use it.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">import</span> <span class="kt">SwiftUI</span>
+
+<span class="kd">struct</span> <span class="kt">ContentView1</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">ScrollViewReader</span> <span class="p">{</span> <span class="n">scrollView</span> <span class="k">in</span>
+            <span class="kt">ScrollView</span> <span class="p">{</span>
+                <span class="kt">Button</span><span class="p">(</span><span class="s">"Scroll to bottom"</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="n">scrollView</span><span class="o">.</span><span class="nf">scrollTo</span><span class="p">(</span><span class="mi">99</span><span class="p">,</span> <span class="nv">anchor</span><span class="p">:</span> <span class="o">.</span><span class="n">center</span><span class="p">)</span>
+                <span class="p">}</span>
+
+                <span class="kt">ForEach</span><span class="p">(</span><span class="mi">0</span><span class="o">..&lt;</span><span class="mi">100</span><span class="p">)</span> <span class="p">{</span> <span class="n">index</span> <span class="k">in</span>
+                    <span class="kt">Text</span><span class="p">(</span><span class="kt">String</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
+                        <span class="o">.</span><span class="nf">id</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>As you can see in the example above, we define a <em>ScrollViewReader</em> that passes the scroll view parameter to its <em>ViewBuilder</em> closure. <em>ScrollViewReader</em> traverses its child view, find the first scroll view and pass it into its <em>ViewBuilder</em> closure.</p>
+
+<p>The parameter of <em>ViewBuilder</em> closure is an instance of <em>ScrollViewProxy</em>. <em>ScrollViewProxy</em> is a simple struct that provides us <em>scrollTo</em> function. We can use this function to scroll to any view that defines its <strong>id</strong>. We can also provide an anchor point of the view to align its position.</p>
+
+<p>I have to mention that the <em>scrollTo</em> function is animatable, and you can wrap it using <em>withAnimation</em> function to animate scrolling.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">import</span> <span class="kt">SwiftUI</span>
+
+<span class="kd">struct</span> <span class="kt">ContentView1</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">ScrollViewReader</span> <span class="p">{</span> <span class="n">scrollView</span> <span class="k">in</span>
+            <span class="kt">ScrollView</span> <span class="p">{</span>
+                <span class="kt">Button</span><span class="p">(</span><span class="s">"Scroll to bottom"</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="n">withAnimation</span> <span class="p">{</span>
+                        <span class="n">scrollView</span><span class="o">.</span><span class="nf">scrollTo</span><span class="p">(</span><span class="mi">99</span><span class="p">,</span> <span class="nv">anchor</span><span class="p">:</span> <span class="o">.</span><span class="n">center</span><span class="p">)</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+
+                <span class="kt">ForEach</span><span class="p">(</span><span class="mi">0</span><span class="o">..&lt;</span><span class="mi">100</span><span class="p">)</span> <span class="p">{</span> <span class="n">index</span> <span class="k">in</span>
+                    <span class="kt">Text</span><span class="p">(</span><span class="kt">String</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
+                        <span class="o">.</span><span class="nf">id</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><strong>Tip: You can use ScrollViewReader with List also.</strong></p>
+
+<h4 id="scrollview-content-offset">ScrollView content offset</h4>
+<p>Now we can move scroll view content to a particular position, but what about reading the content offset. How can we keep the view updated while the user scrolling the content? We don’t have this behavior out of the box, but we can easily implement it using preferences.</p>
+
+<blockquote>
+  <p>If you are not familiar with preferences in SwiftUI, I suggest reading my <a href="/2020/01/15/the-magic-of-view-preferences-in-swiftui/">“The magic of view preferences in SwiftUI”</a> post.</p>
+</blockquote>
+
+<p>Let’s start with defining a preference key type that will store the current content offset using <em>CGPoint</em>.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">private</span> <span class="kd">struct</span> <span class="kt">ScrollOffsetPreferenceKey</span><span class="p">:</span> <span class="kt">PreferenceKey</span> <span class="p">{</span>
+    <span class="kd">static</span> <span class="k">var</span> <span class="nv">defaultValue</span><span class="p">:</span> <span class="kt">CGPoint</span> <span class="o">=</span> <span class="o">.</span><span class="n">zero</span>
+    
+    <span class="kd">static</span> <span class="kd">func</span> <span class="nf">reduce</span><span class="p">(</span><span class="nv">value</span><span class="p">:</span> <span class="k">inout</span> <span class="kt">CGPoint</span><span class="p">,</span> <span class="nv">nextValue</span><span class="p">:</span> <span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">CGPoint</span><span class="p">)</span> <span class="p">{}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Now we can create a view that will replace the scroll view from SwiftUI and reuse it under the hood by providing the ability to read the content offset.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">ScrollView</span><span class="o">&lt;</span><span class="kt">Content</span><span class="p">:</span> <span class="kt">View</span><span class="o">&gt;</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">axes</span><span class="p">:</span> <span class="kt">Axis</span><span class="o">.</span><span class="kt">Set</span>
+    <span class="k">let</span> <span class="nv">showsIndicators</span><span class="p">:</span> <span class="kt">Bool</span>
+    <span class="k">let</span> <span class="nv">offsetChanged</span><span class="p">:</span> <span class="p">(</span><span class="kt">CGPoint</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span>
+    <span class="k">let</span> <span class="nv">content</span><span class="p">:</span> <span class="kt">Content</span>
+
+    <span class="nf">init</span><span class="p">(</span>
+        <span class="nv">axes</span><span class="p">:</span> <span class="kt">Axis</span><span class="o">.</span><span class="kt">Set</span> <span class="o">=</span> <span class="o">.</span><span class="n">vertical</span><span class="p">,</span>
+        <span class="nv">showsIndicators</span><span class="p">:</span> <span class="kt">Bool</span> <span class="o">=</span> <span class="kc">true</span><span class="p">,</span>
+        <span class="nv">offsetChanged</span><span class="p">:</span> <span class="kd">@escaping</span> <span class="p">(</span><span class="kt">CGPoint</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span> <span class="o">=</span> <span class="p">{</span> <span class="n">_</span> <span class="k">in</span> <span class="p">},</span>
+        <span class="kd">@ViewBuilder</span> <span class="nv">content</span><span class="p">:</span> <span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">Content</span>
+    <span class="p">)</span> <span class="p">{</span>
+        <span class="k">self</span><span class="o">.</span><span class="n">axes</span> <span class="o">=</span> <span class="n">axes</span>
+        <span class="k">self</span><span class="o">.</span><span class="n">showsIndicators</span> <span class="o">=</span> <span class="n">showsIndicators</span>
+        <span class="k">self</span><span class="o">.</span><span class="n">offsetChanged</span> <span class="o">=</span> <span class="n">offsetChanged</span>
+        <span class="k">self</span><span class="o">.</span><span class="n">content</span> <span class="o">=</span> <span class="nf">content</span><span class="p">()</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>As you can see, we have a pretty similar to SwiftUI’s scroll view definition. It uses the same parameters but also adds <em>offsetChanged</em> closure that we will call whenever content offset changes. Let’s move to the body property implementation of our scroll view.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">ScrollView</span><span class="o">&lt;</span><span class="kt">Content</span><span class="p">:</span> <span class="kt">View</span><span class="o">&gt;</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="c1">// ...</span>
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">SwiftUI</span><span class="o">.</span><span class="kt">ScrollView</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="nv">showsIndicators</span><span class="p">:</span> <span class="n">showsIndicators</span><span class="p">)</span> <span class="p">{</span>
+            <span class="kt">GeometryReader</span> <span class="p">{</span> <span class="n">geometry</span> <span class="k">in</span>
+                <span class="kt">Color</span><span class="o">.</span><span class="n">clear</span><span class="o">.</span><span class="nf">preference</span><span class="p">(</span>
+                    <span class="nv">key</span><span class="p">:</span> <span class="kt">ScrollOffsetPreferenceKey</span><span class="o">.</span><span class="k">self</span><span class="p">,</span>
+                    <span class="nv">value</span><span class="p">:</span> <span class="n">geometry</span><span class="o">.</span><span class="nf">frame</span><span class="p">(</span><span class="nv">in</span><span class="p">:</span> <span class="o">.</span><span class="nf">named</span><span class="p">(</span><span class="s">"scrollView"</span><span class="p">))</span><span class="o">.</span><span class="n">origin</span>
+                <span class="p">)</span>
+            <span class="p">}</span><span class="o">.</span><span class="nf">frame</span><span class="p">(</span><span class="nv">width</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="nv">height</span><span class="p">:</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">content</span>
+        <span class="p">}</span>
+        <span class="o">.</span><span class="nf">coordinateSpace</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="s">"scrollView"</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">onPreferenceChange</span><span class="p">(</span><span class="kt">ScrollOffsetPreferenceKey</span><span class="o">.</span><span class="k">self</span><span class="p">,</span> <span class="nv">perform</span><span class="p">:</span> <span class="n">offsetChanged</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>As I said before, we use SwiftUI’s scroll view under the hood and pass all the parameters to configure its behavior. Before adding the content, we place a <em>GeometryReader</em> view that allows us to track the content offset changes. We use preferences to pass the origin point of our content to the parent view.</p>
+
+<blockquote>
+  <p>To learn more about <em>GeometryReader</em>, look at my <a href="/2019/08/14/building-barchart-with-shape-api-in-swiftui/">“Building BarChart with Shape API in SwiftUI”</a> post.</p>
+</blockquote>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">ContentView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">ScrollView</span><span class="p">(</span>
+            <span class="nv">axes</span><span class="p">:</span> <span class="p">[</span><span class="o">.</span><span class="n">horizontal</span><span class="p">,</span> <span class="o">.</span><span class="n">vertical</span><span class="p">],</span>
+            <span class="nv">showsIndicators</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+            <span class="nv">offsetChanged</span><span class="p">:</span> <span class="p">{</span> <span class="nf">print</span><span class="p">(</span><span class="nv">$0</span><span class="p">)</span> <span class="p">}</span>
+        <span class="p">)</span> <span class="p">{</span>
+            <span class="kt">ForEach</span><span class="p">(</span><span class="mi">0</span><span class="o">..&lt;</span><span class="mi">100</span><span class="p">)</span> <span class="p">{</span> <span class="n">i</span> <span class="k">in</span>
+                <span class="kt">Text</span><span class="p">(</span><span class="s">"Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book."</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h4 id="conclusion">Conclusion</h4>
+<p>Today we learned all about using a scroll view in SwiftUI. It looks like now we can use SwiftUI’s scroll view and forget about wrapping <em>UIScrollView</em> with <em>UIViewRepresentable</em>. I hope you enjoy the post. Feel free to follow me on <a href="https://twitter.com/mecid">Twitter</a> and ask your questions related to this article. Thanks for reading, and see you next week!</p>
+
+</article>
+
+
+<aside class="related">
+  <h4>Recent posts</h4>
+  <ul class="related-posts">
+    
+      <li>
+        <a title="Custom accessibility content in SwiftUI" href="/2021/10/06/custom-accessibility-content-in-swiftui/">
+          Custom accessibility content in SwiftUI
+          <small><time datetime="2021-10-06T00:00:00+08:00">06 Oct 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Audio graphs in SwiftUI" href="/2021/09/29/audio-graphs-in-swiftui/">
+          Audio graphs in SwiftUI
+          <small><time datetime="2021-09-29T00:00:00+08:00">29 Sep 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Accessibility focus in SwiftUI" href="/2021/09/23/accessibility-focus-in-swiftui/">
+          Accessibility focus in SwiftUI
+          <small><time datetime="2021-09-23T00:00:00+08:00">23 Sep 2021</time></small>
+        </a>
+      </li>
+    
+  </ul>
+</aside>
+
+
+      </main>
+
+      <footer class="footer">
+          <img class="avatar" alt="mecid" width="100" height="100" data-proofer-ignore="true" src="https://avatars2.githubusercontent.com/mecid?v=3&s=100" srcset="https://avatars2.githubusercontent.com/mecid?v=3&s=100 1x, https://avatars2.githubusercontent.com/mecid?v=3&s=200 2x, https://avatars2.githubusercontent.com/mecid?v=3&s=300 3x, https://avatars2.githubusercontent.com/mecid?v=3&s=400 4x" />
+          <small>Hi there! I am code4you,I like to program, and do some App.</small>
+          <small>I'm a developer</small>
+          <small>Feel free to follow me on <a href="https://github.com/code4you2021">Github</a>.</small>
+        <small>
+          &copy; <time datetime="2021-10-17T11:25:11+08:00">2021</time>. All rights reserved.
+        </small>
+      </footer>
+    </div>
+
+    
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1WQVZK1CR7"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-18491817-18');
+    </script>
+    
+  </body>
+</html>

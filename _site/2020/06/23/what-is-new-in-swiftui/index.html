@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" content="swift ios development apple watch iphone ipad swiftui macos uikit dev wwdc tutorial guide redux tea state container" />
+
+  <!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>What’s new in SwiftUI | Code4You</title>
+<meta name="generator" content="Jekyll v3.9.0" />
+<meta property="og:title" content="What’s new in SwiftUI" />
+<meta name="author" content="Code4You" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="I have been waiting for this day for the last nine months, and it has finally arrived. We saw the next iteration of the SwiftUI framework. Apple did a great job during the last year by improving SwiftUI and moving it towards by making it a standalone way for building apps for the Apple ecosystem. Today we will take a peek at all-new SwiftUI features." />
+<meta property="og:description" content="I have been waiting for this day for the last nine months, and it has finally arrived. We saw the next iteration of the SwiftUI framework. Apple did a great job during the last year by improving SwiftUI and moving it towards by making it a standalone way for building apps for the Apple ecosystem. Today we will take a peek at all-new SwiftUI features." />
+<link rel="canonical" href="http://localhost:4000/2020/06/23/what-is-new-in-swiftui/" />
+<meta property="og:url" content="http://localhost:4000/2020/06/23/what-is-new-in-swiftui/" />
+<meta property="og:site_name" content="Code4You" />
+<meta property="og:image" content="http://localhost:4000/public/wwdc20.jpg" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2020-06-23T00:00:00+08:00" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta property="twitter:image" content="http://localhost:4000/public/wwdc20.jpg" />
+<meta property="twitter:title" content="What’s new in SwiftUI" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2020/06/23/what-is-new-in-swiftui/"},"url":"http://localhost:4000/2020/06/23/what-is-new-in-swiftui/","image":"http://localhost:4000/public/wwdc20.jpg","author":{"@type":"Person","name":"Code4You"},"headline":"What’s new in SwiftUI","description":"I have been waiting for this day for the last nine months, and it has finally arrived. We saw the next iteration of the SwiftUI framework. Apple did a great job during the last year by improving SwiftUI and moving it towards by making it a standalone way for building apps for the Apple ecosystem. Today we will take a peek at all-new SwiftUI features.","dateModified":"2020-06-23T00:00:00+08:00","datePublished":"2020-06-23T00:00:00+08:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+  <link rel="alternate" type="application/atom+xml" title="Code4You" href="/feed.xml">
+</head>
+
+
+  <body>
+
+    <div class="container content">
+      <header class="masthead">
+        <nav>
+          <h1 class="masthead-title">
+            <a href="/" title="Home">Code4You</a>
+          </h1>
+          <div>
+            <a href="/categories" title="Categories">Categories</a>
+            <a href="/archive" title="Archive">Archive</a>
+            <a href="/feed.xml" title="Feed">Feed</a>
+          </div>
+        </nav>
+      </header>
+
+      <main>
+        <article class="post">
+  <h2 class="post-title">What's new in SwiftUI</h2>
+  <time datetime="2020-06-23T00:00:00+08:00" class="post-date">23 Jun 2020</time>
+  <p>I have been waiting for this day for the last nine months, and it has finally arrived. We saw the next iteration of the SwiftUI framework. Apple did a great job during the last year by improving SwiftUI and moving it towards by making it a standalone way for building apps for the Apple ecosystem. Today we will take a peek at all-new SwiftUI features.</p>
+
+<!-- <div class="ads">
+    <span>
+        Why don’t more iOS apps use voice? Machine learning for voice is hard, and using Siri is clunky and rigid. So we open-sourced an iOS library (also Android, Node, Python, & React Native), and built a no-code web tool to make custom wake words, speech recognizers, and AI voices—for all devs! <a href="https://www.spokestack.io/?utm_source=swiftui_weekly&utm_medium=email&utm_campaign=maker_launch_PAID">Try it for free.</a>
+    </span>
+</div> -->
+
+<h4 id="app-structure">App structure</h4>
+<p>Apple provides a brand new way of defining the app’s entry point by using the <em>App</em> protocol. <em>App</em> protocol allows us to easily replace the <em>AppDelegate</em> and <em>SceneDelegate</em> with a single struct that will manage our scenes and app lifecycle. Let’s take a look at a very quick example.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">@main</span>
+<span class="kd">struct</span> <span class="kt">CardioBotApp</span><span class="p">:</span> <span class="kt">App</span> <span class="p">{</span>
+    <span class="kd">@SceneBuilder</span> <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">Scene</span> <span class="p">{</span>
+        <span class="kt">WindowGroup</span> <span class="p">{</span>
+            <span class="kt">ContentView</span><span class="p">()</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>In the example above, we have a struct that conforms to the <em>App</em> protocol. The only requirement is the <em>body</em> property that should return any <em>Scene</em>. The <em>Scene</em> is another new protocol introduced by SwiftUI that allows us to declare an app scene. SwiftUI comes with a few ready to use implementations, and one of them is <em>WindowGroup</em>. <em>WindowGroup</em> is a scene type that we will mostly use for the main interface of our app that isn’t document-based.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">@main</span>
+<span class="kd">struct</span> <span class="kt">MyApp</span><span class="p">:</span> <span class="kt">App</span> <span class="p">{</span>
+    <span class="kd">@SceneBuilder</span> <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">Scene</span> <span class="p">{</span>
+        <span class="kt">DocumentGroup</span><span class="p">(</span><span class="nv">newDocument</span><span class="p">:</span> <span class="kt">TextFile</span><span class="p">())</span> <span class="p">{</span> <span class="n">textFile</span> <span class="k">in</span>
+            <span class="kt">TextEditor</span><span class="p">(</span><span class="n">textFile</span><span class="o">.</span><span class="err">$</span><span class="n">document</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="p">}</span>
+
+        <span class="cp">#if os(macOS)</span>
+        <span class="kt">Settings</span> <span class="p">{</span>
+            <span class="kt">SettingsView</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="cp">#endif</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>For document-based apps, SwiftUI provides a <em>DocumentGroup</em> scene that automatically handles the navigation through files.</p>
+
+<h4 id="lazy-stacks">Lazy stacks</h4>
+<p>One thing that I don’t like about SwiftUI stacks is the eager initialization. Whenever you have ten or thousand views in a stack, SwiftUI tries to create them immediately. Fortunately, it is changed today. The new version of the SwiftUI framework provides us <em>LazyHStack</em> and <em>LazyVStack</em> which create its children only when needed.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">import</span> <span class="kt">SwiftUI</span>
+
+<span class="kd">struct</span> <span class="kt">ContentView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">ScrollView</span> <span class="p">{</span>
+            <span class="kt">LazyVStack</span> <span class="p">{</span>
+                <span class="kt">ForEach</span><span class="p">(</span><span class="mi">0</span><span class="o">...</span><span class="mi">1000</span><span class="p">,</span> <span class="nv">id</span><span class="p">:</span> <span class="p">\</span><span class="o">.</span><span class="k">self</span><span class="p">)</span> <span class="p">{</span> <span class="n">index</span> <span class="k">in</span>
+                    <span class="kt">Text</span><span class="p">(</span><span class="kt">String</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
+                        <span class="o">.</span><span class="n">onAppear</span> <span class="p">{</span> <span class="nf">print</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h4 id="grids">Grids</h4>
+<p>It was so tough to create a photo gallery or calendar layout in SwiftUI without <em>UICollectionView</em>. Nowadays, most of the apps have a screen with a grid layout. It was nearly impossible to create a grid layout efficiently using SwiftUI. Fortunately, now we can do it using the new <em>LazyVGrid</em> and <em>LazyHGrid</em> views. Let’s take a look at a quick example.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">import</span> <span class="kt">SwiftUI</span>
+
+<span class="kd">struct</span> <span class="kt">ContentView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">ScrollView</span> <span class="p">{</span>
+            <span class="kt">LazyVGrid</span><span class="p">(</span>
+                <span class="nv">columns</span><span class="p">:</span> <span class="kt">Array</span><span class="p">(</span>
+                    <span class="nv">repeating</span><span class="p">:</span> <span class="kt">GridItem</span><span class="p">(</span><span class="o">.</span><span class="nf">flexible</span><span class="p">()),</span>
+                    <span class="nv">count</span><span class="p">:</span> <span class="mi">3</span>
+                <span class="p">)</span>
+            <span class="p">)</span> <span class="p">{</span>
+                <span class="kt">ForEach</span><span class="p">(</span><span class="mi">0</span><span class="o">...</span><span class="mi">1000</span><span class="p">,</span> <span class="nv">id</span><span class="p">:</span> <span class="p">\</span><span class="o">.</span><span class="k">self</span><span class="p">)</span> <span class="p">{</span> <span class="n">_</span> <span class="k">in</span>
+                    <span class="kt">Color</span><span class="o">.</span><span class="n">red</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h4 id="scrollview">ScrollView</h4>
+<p>If you read my post about <a href="/2020/06/10/swiftui-wishlist-for-wwdc20/">SwiftUI wishes</a>, you might know that I have been waiting for an ability to scroll to a particular offset using a <em>ScrollView</em>. That part of functionally stopped me from using SwiftUI’s <em>ScrollView</em>. It is also changed today when Apple released the <em>ScrollViewReader</em>. <em>ScrollViewReader</em> works very similarly to <em>GeometryReader</em> and provides a way to scroll to a specific view using its <em>ID</em>.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">import</span> <span class="kt">SwiftUI</span>
+
+<span class="kd">struct</span> <span class="kt">ContentView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">ScrollView</span> <span class="p">{</span>
+            <span class="kt">ScrollViewReader</span> <span class="p">{</span> <span class="n">scrollView</span> <span class="k">in</span>
+                <span class="kt">LazyVStack</span> <span class="p">{</span>
+                    <span class="kt">ForEach</span><span class="p">(</span><span class="mi">0</span><span class="o">...</span><span class="mi">1000</span><span class="p">,</span> <span class="nv">id</span><span class="p">:</span> <span class="p">\</span><span class="o">.</span><span class="k">self</span><span class="p">)</span> <span class="p">{</span> <span class="n">index</span> <span class="k">in</span>
+                        <span class="kt">Text</span><span class="p">(</span><span class="kt">String</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
+                            <span class="o">.</span><span class="nf">id</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+                    <span class="p">}</span>
+                    <span class="kt">Button</span><span class="p">(</span><span class="s">"Scroll to the middle"</span><span class="p">)</span> <span class="p">{</span>
+                        <span class="n">scrollView</span><span class="o">.</span><span class="nf">scrollTo</span><span class="p">(</span><span class="mi">500</span><span class="p">)</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h4 id="texteditor">TextEditor</h4>
+<p>One of the most missing components in SwiftUI was <em>TextView</em>. There was no way to edit or type multiline text. We end up with wrapping <em>TextView</em> with <em>UIViewRepresentable</em>, but it doesn’t work well in different circumstances. Finally, this year SwiftUI provides us a <em>TextEditor</em> view that allows us to edit multiline text. Let’s take a look at how we can use it.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">import</span> <span class="kt">SwiftUI</span>
+
+<span class="kd">struct</span> <span class="kt">ContentView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="kd">@State</span> <span class="kd">private</span> <span class="k">var</span> <span class="nv">text</span> <span class="o">=</span> <span class="s">"Hello World!"</span>
+
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">TextEditor</span><span class="p">(</span><span class="nv">text</span><span class="p">:</span> <span class="err">$</span><span class="n">text</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>The usage is pretty similar to <em>TextField</em>, but in this case, we allowed to type very long text examples. There is still no way to use attributed text, but I hope it will arrive during the next betas.</p>
+
+<h4 id="new-data-flow-property-wrappers">New data flow property wrappers</h4>
+<p>Besides all the new views that Apple released today, we also have brand new ways to handle data flow in SwiftUI. SwiftUI now includes the <em>AppStorage</em> property wrapper that accesses <em>UserDefauls</em> and invalidates view as soon as corresponding key changes. Let’s take a look at the example.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">import</span> <span class="kt">SwiftUI</span>
+
+<span class="kd">struct</span> <span class="kt">ContentView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="kd">@AppStorage</span><span class="p">(</span><span class="s">"isNotificationsEnabled"</span><span class="p">)</span> <span class="k">var</span> <span class="nv">enabled</span> <span class="o">=</span> <span class="kc">false</span>
+
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">Toggle</span><span class="p">(</span><span class="s">"Notifications"</span><span class="p">,</span> <span class="nv">isOn</span><span class="p">:</span> <span class="err">$</span><span class="n">enabled</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>There is also <em>SceneStorage</em> property wrapper that we can use for the automatic state restoration of the value. It works similarly to <em>AppStorage</em>, but instead of <em>UserDefaults</em>, it uses per-scene storage managed by the system.</p>
+
+<p>Another new property wrapper is <em>StateObject</em>. <em>StateObject</em> works similarly to <em>State</em> property wrapper. It allocates memory inside the SwiftUI framework and stores your <em>ObservableObject</em> there. It allows to <em>ObservableObject</em> to survive during view updates.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">@main</span>
+<span class="kd">struct</span> <span class="kt">CardioBotApp</span><span class="p">:</span> <span class="kt">App</span> <span class="p">{</span>
+    <span class="kd">@StateObject</span> <span class="k">var</span> <span class="nv">store</span> <span class="o">=</span> <span class="kt">Store</span><span class="p">()</span>
+
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">Scene</span> <span class="p">{</span>
+        <span class="kt">WindowGroup</span> <span class="p">{</span>
+            <span class="kt">ContentView</span><span class="p">()</span>
+                <span class="o">.</span><span class="nf">environmentObject</span><span class="p">(</span><span class="n">store</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h4 id="new-styling-opportunities">New styling opportunities</h4>
+<p>One of the best things about SwiftUI is the way that the framework uses to apply styling. Most of the views in SwiftUI provides protocols that we can conform to share the styling across the app. This year the list of styling protocols increased. SwiftUI allows us to transform <em>TabView</em> into a paging view by applying <em>PageTabViewStyle</em>. There is also a new collection of list styles like <em>SidebarListStyle</em>, <em>InsetGroupedListStyle</em>, and <em>InsetListStyle</em>.</p>
+
+<h4 id="new-views">New views</h4>
+<p>This year SwiftUI integrates more deeply with all the frameworks across the Apple ecosystem. For example, MapKit provides <em>Map</em> and <em>MapAnnotations</em> SwiftUI views. ClockKit provides us a <em>Gauge</em> view that we can use to show value within a range. AVKit provides the <em>VideoPlayer</em> view that we can use to integrate with <em>AVPlayer</em>.</p>
+
+<p>There is also a bunch of new views that SwiftUI provides us today. We finally have a system-wide color picker, native <em>SignInWithAppleButton</em>, <em>ProgressView</em> that supports both linear and circular progress indicators, <em>OutlineGroup</em> that allows us to display tree-structured collections of data, and much more.</p>
+
+<h4 id="conclusion">Conclusion</h4>
+<p>I’m delighted to see that the next iteration of SwiftUI is so strong. Of course, I will share with you detailed posts about all new features of SwiftUI as soon as I play with them enough to share something. Feel free to follow me on <a href="https://twitter.com/mecid">Twitter</a> and ask your questions related to this post. Thanks for reading, and have a nice week!</p>
+
+</article>
+
+
+<aside class="related">
+  <h4>Recent posts</h4>
+  <ul class="related-posts">
+    
+      <li>
+        <a title="Custom accessibility content in SwiftUI" href="/2021/10/06/custom-accessibility-content-in-swiftui/">
+          Custom accessibility content in SwiftUI
+          <small><time datetime="2021-10-06T00:00:00+08:00">06 Oct 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Audio graphs in SwiftUI" href="/2021/09/29/audio-graphs-in-swiftui/">
+          Audio graphs in SwiftUI
+          <small><time datetime="2021-09-29T00:00:00+08:00">29 Sep 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Accessibility focus in SwiftUI" href="/2021/09/23/accessibility-focus-in-swiftui/">
+          Accessibility focus in SwiftUI
+          <small><time datetime="2021-09-23T00:00:00+08:00">23 Sep 2021</time></small>
+        </a>
+      </li>
+    
+  </ul>
+</aside>
+
+
+      </main>
+
+      <footer class="footer">
+          <img class="avatar" alt="mecid" width="100" height="100" data-proofer-ignore="true" src="https://avatars2.githubusercontent.com/mecid?v=3&s=100" srcset="https://avatars2.githubusercontent.com/mecid?v=3&s=100 1x, https://avatars2.githubusercontent.com/mecid?v=3&s=200 2x, https://avatars2.githubusercontent.com/mecid?v=3&s=300 3x, https://avatars2.githubusercontent.com/mecid?v=3&s=400 4x" />
+          <small>Hi there! I am code4you,I like to program, and do some App.</small>
+          <small>I'm a developer</small>
+          <small>Feel free to follow me on <a href="https://github.com/code4you2021">Github</a>.</small>
+        <small>
+          &copy; <time datetime="2021-10-17T11:25:11+08:00">2021</time>. All rights reserved.
+        </small>
+      </footer>
+    </div>
+
+    
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1WQVZK1CR7"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-18491817-18');
+    </script>
+    
+  </body>
+</html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" content="swift ios development apple watch iphone ipad swiftui macos uikit dev wwdc tutorial guide redux tea state container" />
+
+  <!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Alignment guides in SwiftUI | Code4You</title>
+<meta name="generator" content="Jekyll v3.9.0" />
+<meta property="og:title" content="Alignment guides in SwiftUI" />
+<meta name="author" content="Code4You" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="This week we will talk about another great tool that we have in SwiftUI. The alignment guide is a way that we can use to speak to SwiftUI’s layout system. By using alignment guides, we can easily align views that live in different parts of a view hierarchy." />
+<meta property="og:description" content="This week we will talk about another great tool that we have in SwiftUI. The alignment guide is a way that we can use to speak to SwiftUI’s layout system. By using alignment guides, we can easily align views that live in different parts of a view hierarchy." />
+<link rel="canonical" href="http://localhost:4000/2020/03/11/alignment-guides-in-swiftui/" />
+<meta property="og:url" content="http://localhost:4000/2020/03/11/alignment-guides-in-swiftui/" />
+<meta property="og:site_name" content="Code4You" />
+<meta property="og:image" content="http://localhost:4000/public/swiftui.png" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2020-03-11T00:00:00+08:00" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta property="twitter:image" content="http://localhost:4000/public/swiftui.png" />
+<meta property="twitter:title" content="Alignment guides in SwiftUI" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2020/03/11/alignment-guides-in-swiftui/"},"url":"http://localhost:4000/2020/03/11/alignment-guides-in-swiftui/","image":"http://localhost:4000/public/swiftui.png","author":{"@type":"Person","name":"Code4You"},"headline":"Alignment guides in SwiftUI","description":"This week we will talk about another great tool that we have in SwiftUI. The alignment guide is a way that we can use to speak to SwiftUI’s layout system. By using alignment guides, we can easily align views that live in different parts of a view hierarchy.","dateModified":"2020-03-11T00:00:00+08:00","datePublished":"2020-03-11T00:00:00+08:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+  <link rel="alternate" type="application/atom+xml" title="Code4You" href="/feed.xml">
+</head>
+
+
+  <body>
+
+    <div class="container content">
+      <header class="masthead">
+        <nav>
+          <h1 class="masthead-title">
+            <a href="/" title="Home">Code4You</a>
+          </h1>
+          <div>
+            <a href="/categories" title="Categories">Categories</a>
+            <a href="/archive" title="Archive">Archive</a>
+            <a href="/feed.xml" title="Feed">Feed</a>
+          </div>
+        </nav>
+      </header>
+
+      <main>
+        <article class="post">
+  <h2 class="post-title">Alignment guides in SwiftUI</h2>
+  <time datetime="2020-03-11T00:00:00+08:00" class="post-date">11 Mar 2020</time>
+  <p>This week we will talk about another great tool that we have in SwiftUI. The alignment guide is a way that we can use to speak to SwiftUI’s layout system. By using alignment guides, we can easily align views that live in different parts of a view hierarchy.</p>
+
+<!-- <div class="ads">
+    <span>
+        Why don’t more iOS apps use voice? Machine learning for voice is hard, and using Siri is clunky and rigid. So we open-sourced an iOS library (also Android, Node, Python, & React Native), and built a no-code web tool to make custom wake words, speech recognizers, and AI voices—for all devs! <a href="https://www.spokestack.io/?utm_source=swiftui_weekly&utm_medium=email&utm_campaign=maker_launch_PAID">Try it for free.</a>
+    </span>
+</div> -->
+
+<h4 id="basics">Basics</h4>
+<p>SwiftUI provides us a few container views that we can use to build our layout. You might already be familiar with <em>VStack, HStack, and ZStack</em>. All of these container views use alignments to regulate the position of child views inside the container. Let’s take a look at the very basic example.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">VStack</span><span class="p">(</span><span class="nv">alignment</span><span class="p">:</span> <span class="o">.</span><span class="n">leading</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kt">Text</span><span class="p">(</span><span class="s">"Toronto"</span><span class="p">)</span>
+    <span class="kt">Text</span><span class="p">(</span><span class="s">"Paris"</span><span class="p">)</span>
+    <span class="kt">Text</span><span class="p">(</span><span class="s">"London"</span><span class="p">)</span>
+    <span class="kt">Text</span><span class="p">(</span><span class="s">"Madrid"</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>In the example above, we have a vertical container view that displays child views from the top to bottom. We set alignment to leading, and it means that <em>VStack</em> will use the leading point of every child view to align them.</p>
+
+<p><em>VStack</em> uses <em>HorizontalAlignment</em> enum to define possible alignments. On the other hand, <em>HStack</em> uses <em>VerticalAlignment</em> enum. It might be strange, but after all, it is logical. We can set the alignment of <em>VStack</em> only in the horizontal way because the container view controls the vertical direction.
+<em>ZStack</em> uses <em>Alignment</em> enum, which is the combination of <em>HorizontalAlignment</em> and <em>VerticalAlignment</em> enums.</p>
+
+<h4 id="overriding-alignment-guides">Overriding alignment guides</h4>
+<p>SwiftUI allows us to override standard alignments by using the <em>alignmentGuide</em> modifier. For example, we might need to align the bottom of <em>Image</em> and <em>Text</em> views in a horizontal stack. We can face the problem when image has some spacing inside a bitmap, and it looks not aligned very well. This is a perfect case for overriding an alignment guide.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">ContentView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">HStack</span><span class="p">(</span><span class="nv">alignment</span><span class="p">:</span> <span class="o">.</span><span class="n">bottom</span><span class="p">)</span> <span class="p">{</span>
+            <span class="kt">Image</span><span class="p">(</span><span class="nv">systemName</span><span class="p">:</span> <span class="s">"zzz"</span><span class="p">)</span>
+                <span class="o">.</span><span class="nf">alignmentGuide</span><span class="p">(</span><span class="o">.</span><span class="n">bottom</span><span class="p">)</span> <span class="p">{</span> <span class="n">d</span> <span class="k">in</span> <span class="n">d</span><span class="p">[</span><span class="o">.</span><span class="n">bottom</span><span class="p">]</span> <span class="o">+</span> <span class="mi">8</span> <span class="p">}</span>
+            <span class="kt">Text</span><span class="p">(</span><span class="s">"Sleep"</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>As you can see in the example above, we use <em>alignmentGuide</em> modifier to override the default value for .<em>bottom</em> alignment by adding 8 points. We read the default value by using subscript of <strong>d</strong>, which is an instance of <em>ViewDimensions</em> struct. <em>ViewDimensions</em> struct provides us access to the width and height of the view and default alignment values by using a subscript.</p>
+
+<h4 id="custom-alignment-guides">Custom alignment guides</h4>
+<p>We learned how to override default alignments in SwiftUI, but SwiftUI also allows us to create a custom alignment guide that we can use in container views to align its child views. But why we might need it? Custom alignments allow us to align views that live in different container views. Let’s take a look at the example below.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">struct</span> <span class="kt">ContentView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">HStack</span><span class="p">(</span><span class="nv">alignment</span><span class="p">:</span> <span class="o">.</span><span class="n">center</span><span class="p">)</span> <span class="p">{</span>
+            <span class="kt">Image</span><span class="p">(</span><span class="nv">systemName</span><span class="p">:</span> <span class="s">"star"</span><span class="p">)</span>
+            <span class="kt">VStack</span><span class="p">(</span><span class="nv">alignment</span><span class="p">:</span> <span class="o">.</span><span class="n">center</span><span class="p">)</span> <span class="p">{</span>
+                <span class="kt">Text</span><span class="p">(</span><span class="s">"Toronto"</span><span class="p">)</span>
+                <span class="kt">Text</span><span class="p">(</span><span class="s">"Paris"</span><span class="p">)</span>
+                <span class="kt">Text</span><span class="p">(</span><span class="s">"London"</span><span class="p">)</span>
+                <span class="kt">Text</span><span class="p">(</span><span class="s">"Madrid"</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>We have a horizontal stack that contains an image and vertical stack with a few text views. I might need to align the image with the third text view, but it doesn’t look possible with the current configuration, because these views live in different containers. Fortunately, SwiftUI allows us to create a custom alignment and use it in the parent container view.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">extension</span> <span class="kt">VerticalAlignment</span> <span class="p">{</span>
+    <span class="kd">struct</span> <span class="kt">CustomAlignment</span><span class="p">:</span> <span class="kt">AlignmentID</span> <span class="p">{</span>
+        <span class="kd">static</span> <span class="kd">func</span> <span class="nf">defaultValue</span><span class="p">(</span><span class="k">in</span> <span class="nv">context</span><span class="p">:</span> <span class="kt">ViewDimensions</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">CGFloat</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="n">context</span><span class="p">[</span><span class="kt">VerticalAlignment</span><span class="o">.</span><span class="n">center</span><span class="p">]</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="kd">static</span> <span class="k">let</span> <span class="nv">custom</span> <span class="o">=</span> <span class="kt">VerticalAlignment</span><span class="p">(</span><span class="kt">CustomAlignment</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kd">struct</span> <span class="kt">ContentView</span><span class="p">:</span> <span class="kt">View</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">body</span><span class="p">:</span> <span class="kd">some</span> <span class="kt">View</span> <span class="p">{</span>
+        <span class="kt">HStack</span><span class="p">(</span><span class="nv">alignment</span><span class="p">:</span> <span class="o">.</span><span class="n">custom</span><span class="p">)</span> <span class="p">{</span>
+            <span class="kt">Image</span><span class="p">(</span><span class="nv">systemName</span><span class="p">:</span> <span class="s">"star"</span><span class="p">)</span>
+            <span class="kt">VStack</span><span class="p">(</span><span class="nv">alignment</span><span class="p">:</span> <span class="o">.</span><span class="n">leading</span><span class="p">)</span> <span class="p">{</span>
+                <span class="kt">Text</span><span class="p">(</span><span class="s">"Toronto"</span><span class="p">)</span>
+                <span class="kt">Text</span><span class="p">(</span><span class="s">"Paris"</span><span class="p">)</span>
+                <span class="kt">Text</span><span class="p">(</span><span class="s">"London"</span><span class="p">)</span>
+                    <span class="o">.</span><span class="nf">alignmentGuide</span><span class="p">(</span><span class="o">.</span><span class="n">custom</span><span class="p">)</span> <span class="p">{</span> <span class="nv">$0</span><span class="p">[</span><span class="kt">VerticalAlignment</span><span class="o">.</span><span class="n">center</span><span class="p">]</span> <span class="p">}</span>
+                <span class="kt">Text</span><span class="p">(</span><span class="s">"Madrid"</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>In the example above, we use <em>AlignmentID</em> protocol to create a custom alignment. This protocol has the only requirement that we need to provide. SwiftUI will use the <em>defaultValue</em> whenever we leave it without custom value. The interesting fact is that the inner <em>VStack</em> didn’t specify a value for custom alignment, but it uses the value that provides its child view.</p>
+
+<p><img src="/public/align.png" alt="align" /></p>
+
+<h4 id="conclusion">Conclusion</h4>
+<p>Today we learned how powerful could be custom alignments in SwiftUI. We also can use the overriding alignment technique to build super custom layouts. For example, we can build a grid view that arranges child views using alignments. I suggest you play around alignments to understand it well. It is something that can take time. I hope you enjoy the post. Feel free to follow me on <a href="https://twitter.com/mecid">Twitter</a> and ask your questions related to this post. Thanks for reading, and see you next week!</p>
+
+</article>
+
+
+<aside class="related">
+  <h4>Recent posts</h4>
+  <ul class="related-posts">
+    
+      <li>
+        <a title="Custom accessibility content in SwiftUI" href="/2021/10/06/custom-accessibility-content-in-swiftui/">
+          Custom accessibility content in SwiftUI
+          <small><time datetime="2021-10-06T00:00:00+08:00">06 Oct 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Audio graphs in SwiftUI" href="/2021/09/29/audio-graphs-in-swiftui/">
+          Audio graphs in SwiftUI
+          <small><time datetime="2021-09-29T00:00:00+08:00">29 Sep 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Accessibility focus in SwiftUI" href="/2021/09/23/accessibility-focus-in-swiftui/">
+          Accessibility focus in SwiftUI
+          <small><time datetime="2021-09-23T00:00:00+08:00">23 Sep 2021</time></small>
+        </a>
+      </li>
+    
+  </ul>
+</aside>
+
+
+      </main>
+
+      <footer class="footer">
+          <img class="avatar" alt="mecid" width="100" height="100" data-proofer-ignore="true" src="https://avatars2.githubusercontent.com/mecid?v=3&s=100" srcset="https://avatars2.githubusercontent.com/mecid?v=3&s=100 1x, https://avatars2.githubusercontent.com/mecid?v=3&s=200 2x, https://avatars2.githubusercontent.com/mecid?v=3&s=300 3x, https://avatars2.githubusercontent.com/mecid?v=3&s=400 4x" />
+          <small>Hi there! I am code4you,I like to program, and do some App.</small>
+          <small>I'm a developer</small>
+          <small>Feel free to follow me on <a href="https://github.com/code4you2021">Github</a>.</small>
+        <small>
+          &copy; <time datetime="2021-10-17T11:25:11+08:00">2021</time>. All rights reserved.
+        </small>
+      </footer>
+    </div>
+
+    
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1WQVZK1CR7"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-18491817-18');
+    </script>
+    
+  </body>
+</html>

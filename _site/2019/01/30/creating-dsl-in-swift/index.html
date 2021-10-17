@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="keywords" content="swift ios development apple watch iphone ipad swiftui macos uikit dev wwdc tutorial guide redux tea state container" />
+
+  <!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Creating DSL in Swift | Code4You</title>
+<meta name="generator" content="Jekyll v3.9.0" />
+<meta property="og:title" content="Creating DSL in Swift" />
+<meta name="author" content="Code4You" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="This week we will talk about creating DSL in Swift. Let’s start with the understanding of DSL acronym. Domain Specific Language is a language hosted by parent language to solve any specific area. An excellent example of DSL can be HTML which is DSL for creating web page markup." />
+<meta property="og:description" content="This week we will talk about creating DSL in Swift. Let’s start with the understanding of DSL acronym. Domain Specific Language is a language hosted by parent language to solve any specific area. An excellent example of DSL can be HTML which is DSL for creating web page markup." />
+<link rel="canonical" href="http://localhost:4000/2019/01/30/creating-dsl-in-swift/" />
+<meta property="og:url" content="http://localhost:4000/2019/01/30/creating-dsl-in-swift/" />
+<meta property="og:site_name" content="Code4You" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-01-30T00:00:00+08:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Creating DSL in Swift" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2019/01/30/creating-dsl-in-swift/"},"url":"http://localhost:4000/2019/01/30/creating-dsl-in-swift/","author":{"@type":"Person","name":"Code4You"},"headline":"Creating DSL in Swift","description":"This week we will talk about creating DSL in Swift. Let’s start with the understanding of DSL acronym. Domain Specific Language is a language hosted by parent language to solve any specific area. An excellent example of DSL can be HTML which is DSL for creating web page markup.","dateModified":"2019-01-30T00:00:00+08:00","datePublished":"2019-01-30T00:00:00+08:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+  <link rel="alternate" type="application/atom+xml" title="Code4You" href="/feed.xml">
+</head>
+
+
+  <body>
+
+    <div class="container content">
+      <header class="masthead">
+        <nav>
+          <h1 class="masthead-title">
+            <a href="/" title="Home">Code4You</a>
+          </h1>
+          <div>
+            <a href="/categories" title="Categories">Categories</a>
+            <a href="/archive" title="Archive">Archive</a>
+            <a href="/feed.xml" title="Feed">Feed</a>
+          </div>
+        </nav>
+      </header>
+
+      <main>
+        <article class="post">
+  <h2 class="post-title">Creating DSL in Swift</h2>
+  <time datetime="2019-01-30T00:00:00+08:00" class="post-date">30 Jan 2019</time>
+  <p>This week we will talk about creating DSL in Swift. Let’s start with the understanding of DSL acronym. Domain Specific Language is a language hosted by parent language to solve any specific area. An excellent example of DSL can be HTML which is DSL for creating web page markup.</p>
+
+<!-- <div class="ads">
+    <span>
+        Why don’t more iOS apps use voice? Machine learning for voice is hard, and using Siri is clunky and rigid. So we open-sourced an iOS library (also Android, Node, Python, & React Native), and built a no-code web tool to make custom wake words, speech recognizers, and AI voices—for all devs! <a href="https://www.spokestack.io/?utm_source=swiftui_weekly&utm_medium=email&utm_campaign=maker_launch_PAID">Try it for free.</a>
+    </span>
+</div> -->
+
+<p>There are some requirements for a language in which you want to create DSL. A host language should have first-class functions, trailing closures and operator overloading to make DSL possible. The great news is that Swift has all of these features.</p>
+
+<p>We are going to simplify User Interface development on iOS by creating UIKit specific DSL. We have two ways of building UI in iOS. The first one is by using Interface Builder, and the second one is via code. Both of them have pros and cons. For instance, building UI by Interface Builder is a high-speed and visual process, but you have to deal with a problematic code review process, because of the format of Xibs and Storyboards. In case of building your UI by code, you get the reusability and clean code review process, but you deal with the imperative and error-prone codebase, without a visual understanding of view hierarchy.</p>
+
+<p>Let’s set our goals in building UIKit DSL in Swift:</p>
+<ol>
+  <li>Visual view hierarchy</li>
+  <li>Declarative like HTML</li>
+  <li>Type-safe and compile-time guarantee of correctness.</li>
+</ol>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">let</span> <span class="nv">rootView</span> <span class="o">=</span> <span class="n">stack</span> <span class="p">{</span>
+    <span class="nv">$0</span><span class="o">.</span><span class="n">spacing</span> <span class="o">=</span> <span class="mi">16</span>
+    <span class="nv">$0</span><span class="o">.</span><span class="n">axis</span> <span class="o">=</span> <span class="o">.</span><span class="n">vertical</span>
+    <span class="nv">$0</span><span class="o">.</span><span class="n">isLayoutMarginsRelativeArrangement</span> <span class="o">=</span> <span class="kc">true</span>
+
+    <span class="nv">$0</span><span class="o">.</span><span class="n">stack</span> <span class="p">{</span>
+        <span class="nv">$0</span><span class="o">.</span><span class="n">distribution</span> <span class="o">=</span> <span class="o">.</span><span class="n">fillEqually</span>
+        <span class="nv">$0</span><span class="o">.</span><span class="n">axis</span> <span class="o">=</span> <span class="o">.</span><span class="n">horizontal</span>
+
+        <span class="nv">$0</span><span class="o">.</span><span class="n">label</span> <span class="p">{</span>
+            <span class="nv">$0</span><span class="o">.</span><span class="n">textAlignment</span> <span class="o">=</span> <span class="o">.</span><span class="n">center</span>
+            <span class="nv">$0</span><span class="o">.</span><span class="n">textColor</span> <span class="o">=</span> <span class="o">.</span><span class="n">white</span>
+            <span class="nv">$0</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s">"Hello"</span>
+        <span class="p">}</span>
+
+        <span class="nv">$0</span><span class="o">.</span><span class="n">label</span> <span class="p">{</span>
+            <span class="nv">$0</span><span class="o">.</span><span class="n">textAlignment</span> <span class="o">=</span> <span class="o">.</span><span class="n">center</span>
+            <span class="nv">$0</span><span class="o">.</span><span class="n">textColor</span> <span class="o">=</span> <span class="o">.</span><span class="n">white</span>
+            <span class="nv">$0</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s">"World"</span>
+        <span class="p">}</span>
+
+        <span class="nv">$0</span><span class="o">.</span><span class="n">customLabel</span> <span class="p">{</span>
+            <span class="nv">$0</span><span class="o">.</span><span class="n">textAlignment</span> <span class="o">=</span> <span class="o">.</span><span class="n">center</span>
+            <span class="nv">$0</span><span class="o">.</span><span class="n">textColor</span> <span class="o">=</span> <span class="o">.</span><span class="n">white</span>
+            <span class="nv">$0</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s">"!!!"</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">let</span> <span class="nv">messageButton</span> <span class="o">=</span> <span class="nv">$0</span><span class="o">.</span><span class="n">button</span> <span class="p">{</span>
+        <span class="nv">$0</span><span class="o">.</span><span class="n">tintColor</span> <span class="o">=</span> <span class="o">.</span><span class="n">white</span>
+        <span class="nv">$0</span><span class="o">.</span><span class="nf">setTitle</span><span class="p">(</span><span class="s">"Say Hi!"</span><span class="p">,</span> <span class="nv">for</span><span class="p">:</span> <span class="o">.</span><span class="n">normal</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="nv">$0</span><span class="o">.</span><span class="n">view</span> <span class="p">{</span>
+        <span class="nv">$0</span><span class="o">.</span><span class="n">backgroundColor</span> <span class="o">=</span> <span class="o">.</span><span class="n">clear</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>The code above is our target, and this is how we want our DSL to be. Generally, everything in this example is a function with a trailing closure parameter. For more details let’s dive into implementation.</p>
+
+<h4 id="root-elements">Root elements</h4>
+<p>We have to create a function stack which returns <em>UIStackView</em> and accepting closure which we apply to this new created <em>UIStackView</em>.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">stack</span><span class="p">(</span><span class="n">apply</span> <span class="nv">closure</span><span class="p">:</span> <span class="p">(</span><span class="kt">UIStackView</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">UIStackView</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">stack</span> <span class="o">=</span> <span class="kt">UIStackView</span><span class="p">()</span>
+    <span class="nf">closure</span><span class="p">(</span><span class="n">stack</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">stack</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>These lines give us an opportunity to use stack function similar to HTML tag.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">stack</span> <span class="p">{</span>
+    <span class="nv">$0</span><span class="o">.</span><span class="n">axis</span> <span class="o">=</span> <span class="o">.</span><span class="n">vertical</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>As the first parameter of the trailing closure, we get created <em>UIStackView</em> on which we can call customization functions like changing axis, alignment, etc. Next, we want to call <em>$0.label</em> to configure new <em>UILabel</em> and add to previous <em>UIStackView</em>. Let’s create an extension for <em>UIStackView</em> which provides us with label function.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">extension</span> <span class="kt">UIStackView</span> <span class="p">{</span>
+    <span class="kd">@discardableResult</span>
+    <span class="kd">public</span> <span class="kd">func</span> <span class="nf">label</span><span class="p">(</span><span class="n">apply</span> <span class="nv">closure</span><span class="p">:</span> <span class="p">(</span><span class="kt">UILabel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">UILabel</span> <span class="p">{</span>
+        <span class="k">let</span> <span class="nv">label</span> <span class="o">=</span> <span class="kt">UILabel</span><span class="p">()</span>
+        <span class="nf">addArrangedSubview</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+        <span class="nf">closure</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">label</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>We use <em>@discardableResult</em> annotation to disable swift compiler warning on ignoring the result of this function because we already added it to <em>UIStackView</em>. Here is the example of label function usage.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">stack</span> <span class="p">{</span>
+    <span class="nv">$0</span><span class="o">.</span><span class="n">axis</span> <span class="o">=</span> <span class="o">.</span><span class="n">vertical</span>
+    <span class="nv">$0</span><span class="o">.</span><span class="n">label</span> <span class="p">{</span>
+        <span class="nv">$0</span><span class="o">.</span><span class="n">adjustsFontForContentSizeCategory</span> <span class="o">=</span> <span class="kc">true</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>We have one problem here, and this is the extension on <em>UIStackView</em>, only <em>UIStackView</em> will have this function. But we need it in any <em>UIView</em> subclass, so let’s move it to <em>UIView</em> extension.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">extension</span> <span class="kt">UIView</span> <span class="p">{</span>
+    <span class="kd">@discardableResult</span>
+    <span class="kd">public</span> <span class="kd">func</span> <span class="nf">label</span><span class="p">(</span><span class="n">apply</span> <span class="nv">closure</span><span class="p">:</span> <span class="p">(</span><span class="kt">UILabel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Void</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">UILabel</span> <span class="p">{</span>
+        <span class="k">let</span> <span class="nv">label</span> <span class="o">=</span> <span class="kt">UILabel</span><span class="p">()</span>
+        <span class="k">if</span> <span class="k">let</span> <span class="nv">stack</span> <span class="o">=</span> <span class="k">self</span> <span class="k">as?</span> <span class="kt">UIStackView</span> <span class="p">{</span>
+            <span class="n">stack</span><span class="o">.</span><span class="nf">addArrangedSubview</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+            <span class="nf">addSubview</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+        <span class="p">}</span>
+        <span class="nf">closure</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">label</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>We try here to cast self to <em>UIStackView</em>, which give us the ability to use <em>addArrangedSubview</em> in case of <em>UIStackView</em>, if not we add it with the <em>addSubview</em> method. Next step is populating our <em>UIView</em> extension with functions for all UIKit components to make above usage possible for every UIKit component. I’ve added DSL support for all UIKit components. You can check it out on <a href="https://github.com/mecid/UIKitSwiftDSL">Github</a>.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">let</span> <span class="nv">rootView</span> <span class="o">=</span> <span class="n">stack</span> <span class="p">{</span>
+    <span class="nv">$0</span><span class="o">.</span><span class="n">spacing</span> <span class="o">=</span> <span class="mi">16</span>
+    <span class="nv">$0</span><span class="o">.</span><span class="n">axis</span> <span class="o">=</span> <span class="o">.</span><span class="n">vertical</span>
+    <span class="nv">$0</span><span class="o">.</span><span class="n">isLayoutMarginsRelativeArrangement</span> <span class="o">=</span> <span class="kc">true</span>
+
+    <span class="nv">$0</span><span class="o">.</span><span class="n">stack</span> <span class="p">{</span>
+        <span class="nv">$0</span><span class="o">.</span><span class="n">distribution</span> <span class="o">=</span> <span class="o">.</span><span class="n">fillEqually</span>
+        <span class="nv">$0</span><span class="o">.</span><span class="n">axis</span> <span class="o">=</span> <span class="o">.</span><span class="n">horizontal</span>
+
+        <span class="nv">$0</span><span class="o">.</span><span class="n">label</span> <span class="p">{</span>
+            <span class="nv">$0</span><span class="o">.</span><span class="n">textAlignment</span> <span class="o">=</span> <span class="o">.</span><span class="n">center</span>
+            <span class="nv">$0</span><span class="o">.</span><span class="n">textColor</span> <span class="o">=</span> <span class="o">.</span><span class="n">white</span>
+            <span class="nv">$0</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s">"Hello"</span>
+        <span class="p">}</span>
+
+        <span class="nv">$0</span><span class="o">.</span><span class="n">label</span> <span class="p">{</span>
+            <span class="nv">$0</span><span class="o">.</span><span class="n">textAlignment</span> <span class="o">=</span> <span class="o">.</span><span class="n">center</span>
+            <span class="nv">$0</span><span class="o">.</span><span class="n">textColor</span> <span class="o">=</span> <span class="o">.</span><span class="n">white</span>
+            <span class="nv">$0</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s">"World"</span>
+        <span class="p">}</span>
+
+        <span class="nv">$0</span><span class="o">.</span><span class="n">customLabel</span> <span class="p">{</span>
+            <span class="nv">$0</span><span class="o">.</span><span class="n">textAlignment</span> <span class="o">=</span> <span class="o">.</span><span class="n">center</span>
+            <span class="nv">$0</span><span class="o">.</span><span class="n">textColor</span> <span class="o">=</span> <span class="o">.</span><span class="n">white</span>
+            <span class="nv">$0</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s">"!!!"</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">let</span> <span class="nv">messageButton</span> <span class="o">=</span> <span class="nv">$0</span><span class="o">.</span><span class="n">button</span> <span class="p">{</span>
+        <span class="nv">$0</span><span class="o">.</span><span class="n">tintColor</span> <span class="o">=</span> <span class="o">.</span><span class="n">white</span>
+        <span class="nv">$0</span><span class="o">.</span><span class="nf">setTitle</span><span class="p">(</span><span class="s">"Say Hi!"</span><span class="p">,</span> <span class="nv">for</span><span class="p">:</span> <span class="o">.</span><span class="n">normal</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="nv">$0</span><span class="o">.</span><span class="n">view</span> <span class="p">{</span>
+        <span class="nv">$0</span><span class="o">.</span><span class="n">backgroundColor</span> <span class="o">=</span> <span class="o">.</span><span class="n">clear</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Now we achieve declarative, tree-based and type-safe DSL for building UI for iOS. <a href="https://github.com/mecid/UIKitSwiftDSL">It is available via CocoaPods and Carthage</a>.</p>
+
+<h4 id="conclusion">Conclusion</h4>
+<p>Today we learned how powerful is Swift, and how easy we can create DSL for any specific domain. I suggest you try to develop your DSL for <em>DispatchQueue</em> or any other area.</p>
+
+<p>Feel free to follow me on <a href="https://twitter.com/mecid">Twitter</a> and ask your questions related to this post. Thanks for reading and see you next week!</p>
+
+</article>
+
+
+<aside class="related">
+  <h4>Recent posts</h4>
+  <ul class="related-posts">
+    
+      <li>
+        <a title="Custom accessibility content in SwiftUI" href="/2021/10/06/custom-accessibility-content-in-swiftui/">
+          Custom accessibility content in SwiftUI
+          <small><time datetime="2021-10-06T00:00:00+08:00">06 Oct 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Audio graphs in SwiftUI" href="/2021/09/29/audio-graphs-in-swiftui/">
+          Audio graphs in SwiftUI
+          <small><time datetime="2021-09-29T00:00:00+08:00">29 Sep 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a title="Accessibility focus in SwiftUI" href="/2021/09/23/accessibility-focus-in-swiftui/">
+          Accessibility focus in SwiftUI
+          <small><time datetime="2021-09-23T00:00:00+08:00">23 Sep 2021</time></small>
+        </a>
+      </li>
+    
+  </ul>
+</aside>
+
+
+      </main>
+
+      <footer class="footer">
+          <img class="avatar" alt="mecid" width="100" height="100" data-proofer-ignore="true" src="https://avatars2.githubusercontent.com/mecid?v=3&s=100" srcset="https://avatars2.githubusercontent.com/mecid?v=3&s=100 1x, https://avatars2.githubusercontent.com/mecid?v=3&s=200 2x, https://avatars2.githubusercontent.com/mecid?v=3&s=300 3x, https://avatars2.githubusercontent.com/mecid?v=3&s=400 4x" />
+          <small>Hi there! I am code4you,I like to program, and do some App.</small>
+          <small>I'm a developer</small>
+          <small>Feel free to follow me on <a href="https://github.com/code4you2021">Github</a>.</small>
+        <small>
+          &copy; <time datetime="2021-10-17T11:25:11+08:00">2021</time>. All rights reserved.
+        </small>
+      </footer>
+    </div>
+
+    
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1WQVZK1CR7"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-18491817-18');
+    </script>
+    
+  </body>
+</html>
