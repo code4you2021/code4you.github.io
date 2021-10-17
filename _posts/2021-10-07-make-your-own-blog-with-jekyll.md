@@ -7,6 +7,7 @@ category: Other
 Building a website nowadays is not as hard or expensive as it was in the past. These days, you do not have to learn a crazy programming language to have your site up and running.
 
 #### Install Jekyll
+
 ```bash
 # First install rbenv
 brew install rbenv
@@ -32,12 +33,23 @@ gem install --user-install bundler jekyll
 ```
 
 #### Creating a Site
+
 ```bash
-# Jekyll Tutorials: https://jekyllrb.com/tutorials/home/ 
+# Jekyll Tutorials: https://jekyllrb.com/tutorials/home/
 jekyll new MyBlog
 ```
 
+#### GitHubRepo Setting
+
+Create a repository, the repo name is `{username}.github.io`
+
+Add your site to the repo, detail see: https://gist.github.com/code4you2021/59822bd98499422f5b7d5de6f70cf2d9
+
+Setting the GitHubPage:
+![wR4w8T](https://cdn.jsdelivr.net/gh/code4you2021/oss@main/uPic/wR4w8T.jpg)
+
 #### Load error: cannot load such file – webrick
+
 ```bash
 bundle add webrick
 ```
