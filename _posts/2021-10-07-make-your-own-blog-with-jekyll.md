@@ -4,6 +4,8 @@ title: Make your own blog with jekyll
 category: Other
 ---
 
+Building a website nowadays is not as hard or expensive as it was in the past. These days, you do not have to learn a crazy programming language to have your site up and running.
+
 #### Install Jekyll
 ```bash
 # First install rbenv
@@ -32,11 +34,10 @@ gem install --user-install bundler jekyll
 
 #### Creating a Site
 ```bash
+# Jekyll Tutorials: https://jekyllrb.com/tutorials/home/ 
 jekyll new MyBlog
-```
-Detail:
 
-Jekyll Tutorials: https://jekyllrb.com/tutorials/home/ 
+```
 
 #### Load error: cannot load such file – webrick
 ```bash
