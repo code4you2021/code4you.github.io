@@ -7,11 +7,24 @@
 
   <link rel="stylesheet" href="{{ site.baseurl }}/styles.css">
   <style>
-    .highlight pre {
-      margin-bottom: 0;
-      /*overflow-x: auto;*/
-      word-wrap:break-word;
-      word-break:break-all;
+    /* custom scrollbar */
+    .highlight pre::-webkit-scrollbar {
+      width: 20px;
+    }
+
+    .highlight pre::-webkit-scrollbar-track {
+      background-color: transparent;
+    }
+
+    .highlight pre::-webkit-scrollbar-thumb {
+      background-color: #d6dee1;
+      border-radius: 20px;
+      border: 6px solid transparent;
+      background-clip: content-box;
+    }
+
+    .highlight pre::-webkit-scrollbar-thumb:hover {
+      background-color: #a8bbbf;
     }
   </style>
   <link rel="shortcut icon" href="{{ site.baseurl }}/public/favicon.ico">
