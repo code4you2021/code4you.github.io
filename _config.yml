@@ -1,0 +1,32 @@
+repository:	     code4you/code4you.github.io
+# Permalinks
+permalink:           /:year/:month/:day/:title/
+
+# Setup
+theme: minima
+title:               Code4You
+url:                 https://code4you.dev
+paginate:            10
+baseurl:             ""
+analytics_id:        UA-18491817-18
+
+# Assets
+#
+# We specify the directory for Jekyll so we can use @imports.
+sass:
+  sass_dir:          _sass
+  style:            :compressed
+
+# About/contact
+author:
+  name:              Code4You
+  url:               https://code4you.dev
+  email:             code4you2021@gmail.com
+
+# Gems
+plugins:
+  - jekyll-avatar
+  - jekyll-seo-tag
+  - jekyll-sitemap
+  - jekyll-feed
+  - jekyll-paginate
