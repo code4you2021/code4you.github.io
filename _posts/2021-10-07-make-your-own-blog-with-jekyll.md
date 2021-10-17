@@ -29,14 +29,12 @@ gem version
 
 # Restar your terminal, then
 gem install --user-install bundler jekyll
-
 ```
 
 #### Creating a Site
 ```bash
 # Jekyll Tutorials: https://jekyllrb.com/tutorials/home/ 
 jekyll new MyBlog
-
 ```
 
 #### Load error: cannot load such file – webrick
