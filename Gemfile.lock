@@ -279,6 +279,7 @@ PLATFORMS
 
 DEPENDENCIES
   github-pages
+  jekyll-sitemap
   webrick (~> 1.7)
 
 BUNDLED WITH

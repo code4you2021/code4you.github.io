@@ -22,7 +22,7 @@ author:
   name:              Code4You
   url:               https://code4you.dev
   email:             code4you2021@gmail.com
-
+  
 # Gems
 plugins:
   - jekyll-avatar
@@ -30,3 +30,4 @@ plugins:
   - jekyll-sitemap
   - jekyll-feed
   - jekyll-paginate
+  - jekyll-sitemap
