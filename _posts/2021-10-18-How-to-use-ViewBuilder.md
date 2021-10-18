@@ -4,7 +4,7 @@ title: How to use ViewBuilder
 category: SwiftUI
 ---
 
-You typically use ViewBuilder as a parameter attribute for child view-producing closure parameters, allowing those closures to provide multiple child views. 
+You typically use ViewBuilder as a parameter attribute for child view-producing closure parameters, allowing those closures to `provide multiple child views`. 
 
 #### What you need to know
 
