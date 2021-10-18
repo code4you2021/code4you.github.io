@@ -8,7 +8,7 @@ You typically use ViewBuilder as a parameter attribute for child view-producing 
 
 #### What you need to know
 
-- 😯 [ViewBuilder](https://swiftontap.com/viewbuilder)
--  [ViewBuilder](https://developer.apple.com/documentation/swiftui/viewbuilder)
+- 🍻 [ViewBuilder](https://swiftontap.com/viewbuilder)
+-   [ViewBuilder](https://developer.apple.com/documentation/swiftui/viewbuilder)
 
 to do ...

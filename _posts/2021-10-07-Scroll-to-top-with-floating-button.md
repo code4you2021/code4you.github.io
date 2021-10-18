@@ -12,10 +12,10 @@ Here is possible alternate solution in `Xcode 12 / iOS 14 (SwiftUI 2.0)` that ca
 
 #### What you need to know
 
-- [ScrollViewReader](https://swiftontap.com/ScrollViewProxy)
-- [overlay](https://swiftontap.com/view/overlay(_:alignment:))
-- [GeometryReader](https://swiftontap.com/geometryreader)
-- [GeometryProxy](https://swiftontap.com/geometryproxy)
+- 🍻[ScrollViewReader](https://swiftontap.com/ScrollViewProxy)
+- 🍻[overlay](https://swiftontap.com/view/overlay(_:alignment:))
+- 🍻[GeometryReader](https://swiftontap.com/geometryreader)
+- 🍻[GeometryProxy](https://swiftontap.com/geometryproxy)
 
 #### Let's get started
 
