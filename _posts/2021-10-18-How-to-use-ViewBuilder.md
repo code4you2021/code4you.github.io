@@ -48,7 +48,7 @@ struct CustomView<Content: View>: View {
 
 The view file, `Content.swift`:
 
-![1YUbCG](https://cdn.jsdelivr.net/gh/code4you2021/oss@main/uPuc/1YUbCG.png)
+![py13k5](https://cdn.jsdelivr.net/gh/code4you2021/oss@main/uPuc/py13k5.png)
 
 ```swift
 import SwiftUI
