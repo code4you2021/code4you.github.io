@@ -10,6 +10,8 @@ Here is possible alternate solution in `Xcode 12 / iOS 14 (SwiftUI 2.0)` that ca
 
 ![w8g6oP](https://cdn.jsdelivr.net/gh/code4you2021/oss@main/uPic/w8g6oP.gif)
 
+What's learned from books is superficial after all. It's crucial to have it personally tested somehow.
+
 #### What you need to know
 
 - 🍻[ScrollViewReader](https://swiftontap.com/ScrollViewProxy)

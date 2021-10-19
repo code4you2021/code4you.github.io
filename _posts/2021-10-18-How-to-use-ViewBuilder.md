@@ -19,6 +19,8 @@ You typically use ViewBuilder as a parameter attribute for child view-producing 
 #### Preview
 ![wdNSKx](https://cdn.jsdelivr.net/gh/code4you2021/oss@main/uPuc/wdNSKx.gif)
 
+What's learned from books is superficial after all. It's crucial to have it personally tested somehow.
+
 #### Fixed structure
 In most cases the code is as follows, you can try adding some properties.
 ```swift
