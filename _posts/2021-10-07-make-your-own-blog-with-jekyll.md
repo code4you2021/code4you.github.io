@@ -26,10 +26,11 @@ echo 'export PATH="$HOME/.rbenv/versions/2.7.4/bin:$PATH"' >> ~/.bash_profile
 rbenv global 2.7.4
 
 # Check your gem version
-gem version
+gem --version
 
 # Restar your terminal, then
 gem install --user-install bundler jekyll
+
 ```
 
 #### Creating a Site
