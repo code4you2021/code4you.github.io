@@ -6,6 +6,14 @@ category: Swift
 
 The willSet and didSet features are used in the Swift language to monitor property value changes other than initialization.
 
+#### What you need to know
+
+-   [Properties](https://docs.swift.org/swift-book/LanguageGuide/Properties.html)
+
+> You have the option to define either or both of these observers on a property:
+> - willSet is called just before the value is stored.
+> - didSet is called immediately after the new value is stored.
+
 #### Example
 
 ```swift
