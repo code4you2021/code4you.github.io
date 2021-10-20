@@ -24,13 +24,13 @@ class Boy: NSObject {
     var firstName: String = ""
     var lastName: String = ""
     
-    var fullName:String {
+    var fullName: String {
         get {
-            return "\(firstName) \(lastName)"
+            "\(firstName) \(lastName)"
         }
     }
     
-    var age:Int = 0 {
+    var age: Int = 0 {
         // Something needs to be done before the age property changes
         willSet {
             print("1.newValue: ", newValue)
@@ -45,15 +45,24 @@ class Boy: NSObject {
             }
         }
     }
+    
+    func toString() -> String {
+        return "fullName: \(fullName) " + ", Age: \(age) "
+    }
 }
 
 var boy = Boy()
+boy.firstName = "first"
+boy.lastName = "last"
 boy.age = 10
+
+print(boy.toString())
 
 /**
 *1.newValue:  10
 *2.oldValue:  0
 *3.hello, Boy
+*fullName: first last , Age: 10 
 */
 
 
