@@ -31,7 +31,7 @@ class Boy: NSObject {
     }
     
     var age: Int = 0 {
-        // Something needs to be done before the age property changes
+        // We need to do something before the age property changes
         willSet {
             print("1.newValue: ", newValue)
         }
