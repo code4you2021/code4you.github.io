@@ -47,7 +47,7 @@ class Boy: NSObject {
     }
     
     func toString() -> String {
-        return "fullName: \(fullName) " + ", Age: \(age) "
+        return "fullName: \(fullName) " + ", age: \(age) "
     }
 }
 
@@ -62,7 +62,7 @@ print(boy.toString())
 *1.newValue:  10
 *2.oldValue:  0
 *3.hello, Boy
-*fullName: first last , Age: 10 
+*fullName: first last , age: 10 
 */
 
 
