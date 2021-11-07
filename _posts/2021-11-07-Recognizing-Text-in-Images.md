@@ -112,10 +112,8 @@ print("result: ", result)
 */
 
 // get the text from image
-let detectTextFromImage = ImageAnalysis.shared.loadImage(image) { transcript in
+ImageAnalysis.shared.loadImage(image) { transcript in
     print("transcript: ", transcript)
 }
 
 ```
-
-#### Acknowledgements
